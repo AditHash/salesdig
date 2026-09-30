@@ -2,7 +2,9 @@ import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import User from "../models/user.model.js";
+import { postgres } from "../config/postgres.js";
+import { IUser } from "../models/user.model.js";
+import { mapDbRow } from "../utils/dbRows.js";
 import { logActivity } from "../utils/logActivity.js";
 import { sendPasswordResetEmail } from "../services/email.service.js";
 import { getWorkspaceSettings, getWorkspaceSlug } from "../config/postgres.js";
@@ -22,7 +24,8 @@ export const loginUser = async (req: Request, res: Response) => {
             });
         }
 
-        const user = await User.findOne({ email });
+        const result = await postgres.query("SELECT * FROM users WHERE email = $1", [email]);
+        const user = mapDbRow<IUser>(result.rows[0]);
 
         if (!user) {
             return res.status(400).json({
@@ -52,20 +55,20 @@ export const loginUser = async (req: Request, res: Response) => {
 
         // Update last login
         user.lastLogin = new Date();
-        await user.save();
+        await postgres.query("UPDATE users SET last_login = now(), updated_at = now() WHERE id = $1", [user.id]);
 
         const token = jwt.sign(
-            { id: user._id, role: user.role, workspaceId: user.workspaceId },
+            { id: user.id, role: user.role, workspaceId: user.workspaceId },
             process.env.JWT_SECRET as string,
             { expiresIn: "7d" }
         );
 
-        logActivity(String(user._id), "LOGIN", "/login", `${user.email} | ${user.role}`);
+        logActivity(user.id, "LOGIN", "/login", `${user.email} | ${user.role}`);
 
         return res.json({
             token,
             user: {
-                id: user._id,
+                id: user.id,
                 name: user.name,
                 email: user.email,
                 role: user.role,
@@ -89,14 +92,15 @@ export const changeMyPassword = async (req: any, res: Response) => {
             return res.status(400).json({ message: "Old password and new password (min 6 chars) are required" });
         }
 
-        const user = await User.findById(req.userId);
+        const userResult = await postgres.query("SELECT * FROM users WHERE id = $1", [req.userId]);
+        const user = mapDbRow<IUser>(userResult.rows[0]);
         if (!user) return res.status(404).json({ message: "User not found" });
 
         const isMatch = await bcrypt.compare(oldPassword, user.password);
         if (!isMatch) return res.status(400).json({ message: "Old password is incorrect" });
 
-        user.password = await bcrypt.hash(newPassword, 10);
-        await user.save();
+        const password = await bcrypt.hash(newPassword, 10);
+        await postgres.query("UPDATE users SET password = $2, updated_at = now() WHERE id = $1", [user.id, password]);
 
         res.json({ message: "Password changed successfully" });
     } catch (error) {
@@ -113,14 +117,17 @@ export const logoutUser = async (req: any, res: Response) => {
 export const forgotPassword = async (req: Request, res: Response) => {
     try {
         const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
-        const user = await User.findOne({ email });
+        const result = await postgres.query("SELECT * FROM users WHERE email = $1", [email]);
+        const user = mapDbRow<IUser>(result.rows[0]);
         // Always return 200 to avoid email enumeration
         if (!user) return res.json({ message: "If that email exists, a reset link has been sent." });
 
         const rawToken = crypto.randomBytes(32).toString("hex");
-        user.passwordResetToken = crypto.createHash("sha256").update(rawToken).digest("hex");
-        user.passwordResetExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
-        await user.save();
+        const resetToken = crypto.createHash("sha256").update(rawToken).digest("hex");
+        await postgres.query(
+            "UPDATE users SET password_reset_token = $2, password_reset_expiry = now() + interval '1 hour', updated_at = now() WHERE id = $1",
+            [user.id, resetToken]
+        );
 
         const workspace = await getWorkspaceSettings(user.workspaceId) || DEFAULT_WORKSPACE_SETTINGS;
         const workspaceSlug = await getWorkspaceSlug(user.workspaceId);
@@ -141,17 +148,19 @@ export const setPassword = async (req: Request, res: Response) => {
             return res.status(400).json({ message: "Password must be at least 6 characters" });
 
         const hashed = crypto.createHash("sha256").update(String(token)).digest("hex");
-        const user = await User.findOne({
-            passwordResetToken: hashed,
-            passwordResetExpiry: { $gt: new Date() },
-        });
+        const result = await postgres.query(
+            "SELECT * FROM users WHERE password_reset_token = $1 AND password_reset_expiry > now()",
+            [hashed]
+        );
+        const user = mapDbRow<IUser>(result.rows[0]);
 
         if (!user) return res.status(400).json({ message: "Invalid or expired link" });
 
-        user.password = await bcrypt.hash(password, 10);
-        user.passwordResetToken = undefined;
-        user.passwordResetExpiry = undefined;
-        await user.save();
+        const hashedPassword = await bcrypt.hash(password, 10);
+        await postgres.query(
+            "UPDATE users SET password = $2, password_reset_token = NULL, password_reset_expiry = NULL, updated_at = now() WHERE id = $1",
+            [user.id, hashedPassword]
+        );
 
         res.json({ message: "Password set successfully" });
     } catch (error) {
@@ -163,8 +172,11 @@ export const updateMyName = async (req: any, res: Response) => {
     try {
         const { name } = req.body;
         if (!name?.trim()) return res.status(400).json({ message: "Name is required" });
-        const user = await User.findByIdAndUpdate(req.userId, { name: name.trim() }, { new: true }).select("-password");
-        res.json(user);
+        const result = await postgres.query(
+            "UPDATE users SET name = $2, updated_at = now() WHERE id = $1 RETURNING id, name, email, role, workspace_id, last_login, is_blocked, created_at, updated_at",
+            [req.userId, name.trim()]
+        );
+        res.json(mapDbRow(result.rows[0]));
     } catch {
         res.status(500).json({ message: "Failed to update name" });
     }
@@ -172,7 +184,11 @@ export const updateMyName = async (req: any, res: Response) => {
 
 export const getMe = async (req: any, res: Response) => {
     try {
-        const user = await User.findById(req.userId).select("-password");
+        const result = await postgres.query(
+            "SELECT id, name, email, role, workspace_id, last_login, is_blocked, created_at, updated_at FROM users WHERE id = $1",
+            [req.userId]
+        );
+        const user = mapDbRow(result.rows[0]);
 
         if (!user) {
             return res.status(404).json({

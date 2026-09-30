@@ -1,29 +1,29 @@
 # PostgreSQL Migration Handoff
 
-Updated: 2026-09-29
+Updated: 2026-09-30
 
-## Current state
+## Completed in this change
 
-The app supports isolated company workspaces. New workspaces inherit editable Workmates settings by default; workspace admins can customize branding, sales services, partner products, and recommendation options.
+- Replaced Mongoose persistence with PostgreSQL queries for users, reports, analysis runs, chat sessions/messages, and activity.
+- Added PostgreSQL tables, indexes, JSONB report/run payloads, and workspace/user foreign keys. Workspace settings and pgvector embeddings remain in PostgreSQL.
+- Removed the Mongoose dependency and all runtime `MONGO_URI` requirements.
+- Added a JSON export importer for legacy MongoDB collections and a PostgreSQL embedding backfill command.
+- Added `backend/.env.example` and updated system/database docs for the PostgreSQL-only runtime.
 
-The database migration is only partial. PostgreSQL with pgvector stores workspace settings and report embeddings. MongoDB via Mongoose still stores users, analysis reports, analysis runs, chat sessions, and activity records. The backend currently needs both `DATABASE_URL` and `MONGO_URI`; Pinecone has been removed from the current code path.
+## Current runtime requirements
 
-## Completed and pushed
+Set `DATABASE_URL`, `JWT_SECRET`, and `GEMINI_API_KEY`. PostgreSQL must provide pgvector and allow the startup role to create the extension and application schema. Set `PGSSLMODE=require` when the hosted database requires TLS. Email variables are optional for invitation and password reset flows. There is no runtime MongoDB or Pinecone dependency.
 
-- Workspace registration, workspace scoped access, and admin settings customization.
-- Workmates default workspace configuration and per workspace branding/product settings.
-- PostgreSQL workspace settings and pgvector report retrieval, replacing Pinecone.
-- Frontend and backend production builds passed for commit `2e54a90` (`Add customizable company workspaces`).
-- App source baseline and lockfiles are committed and pushed to `origin/main`.
+## Before switching an existing deployment
 
-## Work remaining for PostgreSQL only
+1. Back up MongoDB and export `users`, `analysisruns`, `analysisreports`, `chatsessions`, and `footprints` as Extended JSON arrays.
+2. Export workspace rows from the current PostgreSQL database to `workspaces.json` so custom IDs and settings are preserved.
+3. Point `DATABASE_URL` to the destination PostgreSQL database and run `LEGACY_MONGO_EXPORT_DIR=/secure/path npm run migrate:legacy-export` from `backend/`.
+4. Run `npm run backfill:embeddings`, then compare source/destination counts and inspect representative accounts, reports, chat histories, and activity.
+5. Exercise signup/login, admin invites and blocking, analysis, report regeneration/deletion/PDF, chat retrieval, and workspace isolation before cutover. Keep the backup until validation passes.
 
-1. Define PostgreSQL tables and constraints for users, reports, analysis runs, chat messages/sessions, and activity. Keep flexible AI report payloads in JSONB and stable ownership/status fields relational.
-2. Replace all Mongoose models, connection setup, and queries across auth, admin, reports, analysis orchestration, chat, activity, retrieval, PDF, and scripts.
-3. Add a repeatable migration for existing MongoDB records, preserving IDs or mapping references consistently. Document backup, rerun, and cutover steps before removing the old database.
-4. Remove Mongoose and `MONGO_URI`; update package manifests, environment documentation, startup and migration scripts so PostgreSQL is the only application database.
-5. Verify workspace isolation and ownership checks across every query, then run frontend/backend builds and database-backed flow checks.
+The importer preserves record IDs and is safe to rerun for the same exports. Chat messages are imported only when the destination chat session has no messages. Run the migration during a maintenance window to avoid concurrent writes.
 
-## Resume point
+## Validation status
 
-Start by auditing remaining Mongoose imports and designing the relational schema plus legacy-data migration. At handoff, no PostgreSQL-only migration work has started. The user's existing `README.md` edit is unstaged and must be preserved.
+Frontend and backend production builds pass. No live PostgreSQL instance or legacy data export was available in this workspace, so runtime SQL, import behavior, and application flows still need environment-backed verification before cutover.

@@ -1,7 +1,8 @@
 import { Response } from "express";
 import { GoogleGenAI } from "@google/genai";
 import { AuthRequest } from "../middlewares/isAuth.js";
-import ChatSession from "../models/chatSession.model.js";
+import crypto from "crypto";
+import { postgres } from "../config/postgres.js";
 import { retrieveRelevantReports } from "../services/rag/retrieval.service.js";
 import { getWorkspaceSettings } from "../config/postgres.js";
 import { DEFAULT_WORKSPACE_SETTINGS, WorkspaceSettings } from "../config/workspaceDefaults.js";
@@ -68,15 +69,19 @@ export const sendMessage = async (req: AuthRequest, res: Response) => {
     const message = sanitizeInput(raw);
     if (!message) return res.status(400).json({ message: "Invalid message" });
 
-    // Get or create session
-    let session = await ChatSession.findOne({ userId: req.userId });
-    if (!session) session = await ChatSession.create({ userId: req.userId, messages: [] });
-
-    // Build history window (last 10 messages)
-    const recentHistory = session.messages.slice(-HISTORY_WINDOW).map(m => ({
-      role: m.role,
-      content: m.content
-    }));
+    const sessionId = crypto.randomUUID();
+    await postgres.query(
+      `INSERT INTO chat_sessions (id, user_id, workspace_id) VALUES ($1, $2, $3)
+       ON CONFLICT (user_id) DO UPDATE SET updated_at = now()`,
+      [sessionId, req.userId, req.workspaceId]
+    );
+    const historyResult = await postgres.query(
+      `SELECT role, content FROM chat_messages
+       WHERE session_id = (SELECT id FROM chat_sessions WHERE user_id = $1)
+       ORDER BY id DESC LIMIT $2`,
+      [req.userId, HISTORY_WINDOW]
+    );
+    const recentHistory = historyResult.rows.reverse().map(m => ({ role: m.role, content: m.content }));
     const workspace = await getWorkspaceSettings(req.workspaceId!) || DEFAULT_WORKSPACE_SETTINGS;
 
     const apiKey = process.env.GEMINI_API_KEY;
@@ -115,9 +120,26 @@ Latest message: ${message}`;
 
     // Persist messages
     const usedReportIds = contexts.map(c => c.reportId);
-    session.messages.push({ role: "user", content: message, createdAt: new Date() });
-    session.messages.push({ role: "assistant", content: reply, createdAt: new Date(), usedReportIds });
-    await session.save();
+    const client = await postgres.connect();
+    try {
+      await client.query("BEGIN");
+      const session = await client.query("SELECT id FROM chat_sessions WHERE user_id = $1 FOR UPDATE", [req.userId]);
+      await client.query(
+        "INSERT INTO chat_messages (session_id, role, content, created_at) VALUES ($1, 'user', $2, now())",
+        [session.rows[0].id, message]
+      );
+      await client.query(
+        "INSERT INTO chat_messages (session_id, role, content, created_at, used_report_ids) VALUES ($1, 'assistant', $2, now(), $3)",
+        [session.rows[0].id, reply, usedReportIds]
+      );
+      await client.query("UPDATE chat_sessions SET updated_at = now() WHERE id = $1", [session.rows[0].id]);
+      await client.query("COMMIT");
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
 
     return res.json({
       reply,
@@ -136,8 +158,13 @@ Latest message: ${message}`;
 export const getChatHistory = async (req: AuthRequest, res: Response) => {
   try {
     if (!req.userId) return res.status(401).json({ message: "Unauthorized" });
-    const session = await ChatSession.findOne({ userId: req.userId }).lean();
-    return res.json({ messages: session?.messages ?? [] });
+    const result = await postgres.query(
+      `SELECT m.role, m.content, m.created_at AS "createdAt", m.used_report_ids AS "usedReportIds"
+       FROM chat_messages m JOIN chat_sessions s ON s.id = m.session_id
+       WHERE s.user_id = $1 ORDER BY m.id`,
+      [req.userId]
+    );
+    return res.json({ messages: result.rows });
   } catch (error) {
     console.error("[chat] getChatHistory error:", error);
     return res.status(500).json({ message: "Failed to fetch history" });
@@ -147,7 +174,10 @@ export const getChatHistory = async (req: AuthRequest, res: Response) => {
 export const clearChatHistory = async (req: AuthRequest, res: Response) => {
   try {
     if (!req.userId) return res.status(401).json({ message: "Unauthorized" });
-    await ChatSession.findOneAndUpdate({ userId: req.userId }, { messages: [] });
+    await postgres.query(
+      "DELETE FROM chat_messages WHERE session_id = (SELECT id FROM chat_sessions WHERE user_id = $1)",
+      [req.userId]
+    );
     return res.json({ message: "History cleared" });
   } catch (error) {
     console.error("[chat] clearChatHistory error:", error);

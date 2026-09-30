@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
-import User from "../models/user.model.js";
 import { AuthRequest } from "../middlewares/isAuth.js";
 import { getWorkspaceSettings, getWorkspaceSettingsBySlug, postgres, saveWorkspaceSettings } from "../config/postgres.js";
 import { DEFAULT_WORKSPACE_SETTINGS, parseWorkspaceSettings } from "../config/workspaceDefaults.js";
@@ -17,7 +16,8 @@ export const registerWorkspace = async (req: Request, res: Response) => {
       !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || password.length < 8 || password.length > 128) {
     return res.status(400).json({ message: "Enter a company name, your name, a valid email, and a password of at least 8 characters." });
   }
-  if (await User.findOne({ email })) return res.status(409).json({ message: "An account with this email already exists." });
+  const existing = await postgres.query("SELECT 1 FROM users WHERE email = $1", [email]);
+  if (existing.rowCount) return res.status(409).json({ message: "An account with this email already exists." });
 
   const baseSlug = companyName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 45) || "sales-team";
   const slug = `${baseSlug}-${crypto.randomBytes(3).toString("hex")}`;
@@ -28,7 +28,7 @@ export const registerWorkspace = async (req: Request, res: Response) => {
     companyDescription: `${companyName} sales team researching target companies and planning customer engagements.`
   };
   const client = await postgres.connect();
-  let createdUserId: string | null = null;
+  const userId = crypto.randomUUID();
 
   try {
     await client.query("BEGIN");
@@ -36,25 +36,21 @@ export const registerWorkspace = async (req: Request, res: Response) => {
       "INSERT INTO workspaces (id, slug, settings) VALUES ($1, $2, $3::jsonb)",
       [workspaceId, slug, JSON.stringify(settings)]
     );
-    const user = await User.create({
-      name,
-      email,
-      password: await bcrypt.hash(password, 12),
-      role: "admin",
-      workspaceId
-    });
-    createdUserId = String(user._id);
+    await client.query(
+      `INSERT INTO users (id, name, email, password, role, workspace_id)
+       VALUES ($1, $2, $3, $4, 'admin', $5)`,
+      [userId, name, email, await bcrypt.hash(password, 12), workspaceId]
+    );
     await client.query("COMMIT");
 
     return res.status(201).json({
       message: "Workspace created. Sign in to customize your company settings.",
       workspace: { id: workspaceId, slug, settings },
-      user: { id: createdUserId, name: user.name, email: user.email, role: user.role }
+      user: { id: userId, name, email, role: "admin" }
     });
   } catch (error) {
     await client.query("ROLLBACK").catch(() => undefined);
-    if (createdUserId) await User.findByIdAndDelete(createdUserId).catch(() => undefined);
-    if (["23505", 11000].includes((error as any)?.code)) {
+    if ((error as any)?.code === "23505") {
       return res.status(409).json({ message: "An account or workspace with those details already exists." });
     }
     console.error("Workspace registration failed", error);

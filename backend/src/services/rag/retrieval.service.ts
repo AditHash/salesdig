@@ -1,4 +1,4 @@
-import AnalysisReport from "../../models/analysisReport.model.js";
+import { postgres } from "../../config/postgres.js";
 import { embedQuery } from "../llm/embedding.service.js";
 import { queryVectors } from "./pgvector.client.js";
 import { DEFAULT_WORKSPACE_ID } from "../../config/workspaceDefaults.js";
@@ -21,17 +21,16 @@ export const retrieveRelevantReports = async (
 
   if (reportIds.length === 0) return [];
 
-  const reports = await AnalysisReport.find(
-    { _id: { $in: reportIds }, userId },
-    { customerName: 1, companyDomain: 1, digestText: 1 }
-  ).lean();
+  const result = await postgres.query(
+    `SELECT id, customer_name, company_domain, digest_text
+     FROM analysis_reports WHERE id = ANY($1::text[]) AND user_id = $2 AND workspace_id = $3`,
+    [reportIds, userId, workspaceId]
+  );
 
-  return reports
-    .filter(r => r.digestText)
-    .map(r => ({
-      reportId: String(r._id),
-      customerName: r.customerName,
-      companyDomain: r.companyDomain,
-      digestText: r.digestText!
-    }));
+  return result.rows.filter(row => row.digest_text).map(row => ({
+    reportId: row.id,
+    customerName: row.customer_name,
+    companyDomain: row.company_domain,
+    digestText: row.digest_text
+  }));
 };

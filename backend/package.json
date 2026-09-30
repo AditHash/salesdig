@@ -8,7 +8,8 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc && cp -r src/assets dist/assets",
     "start": "node dist/server.js",
-    "seed": "tsx src/seed.ts"
+    "migrate:legacy-export": "tsx src/scripts/import-mongo-export.ts",
+    "backfill:embeddings": "tsx src/scripts/backfill-embeddings.ts"
   },
   "keywords": [
     "node",
@@ -16,7 +17,8 @@
     "typescript",
     "api",
     "jwt",
-    "mongodb"
+    "postgresql",
+    "pgvector"
   ],
   "author": "Ayushi Srivastava",
   "license": "ISC",
@@ -27,7 +29,6 @@
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
-    "mongoose": "^9.1.5",
     "nodemailer": "^8.0.2",
     "pdfkit": "^0.17.2",
     "pg": "^8.23.0",

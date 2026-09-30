@@ -1,7 +1,9 @@
 import { Response } from "express";
 import puppeteer from "puppeteer";
 import { AuthRequest } from "../middlewares/isAuth.js";
-import AnalysisReport from "../models/analysisReport.model.js";
+import { postgres } from "../config/postgres.js";
+import { IAnalysisReport } from "../models/analysisReport.model.js";
+import { mapDbRow } from "../utils/dbRows.js";
 import { logActivity } from "../utils/logActivity.js";
 import { getWorkspaceSettings } from "../config/postgres.js";
 import { DEFAULT_WORKSPACE_SETTINGS } from "../config/workspaceDefaults.js";
@@ -425,9 +427,13 @@ export const generateReportPdf = async (req: AuthRequest, res: Response) => {
   try {
     if (!req.userId) return res.status(401).json({ message: "Unauthorized" });
 
-    const report = await AnalysisReport.findOne({ _id: req.params.reportId, workspaceId: req.workspaceId }).lean() as any;
+    const reportResult = await postgres.query(
+      "SELECT * FROM analysis_reports WHERE id = $1 AND workspace_id = $2",
+      [req.params.reportId, req.workspaceId]
+    );
+    const report = mapDbRow<IAnalysisReport>(reportResult.rows[0]) as any;
     if (!report) return res.status(404).json({ message: "Report not found" });
-    if (req.userRole !== "admin" && String(report.userId) !== String(req.userId)) {
+    if (req.userRole !== "admin" && report.userId !== req.userId) {
       return res.status(403).json({ message: "Forbidden" });
     }
 

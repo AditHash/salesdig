@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import User from "../models/user.model.js";
+import { postgres } from "../config/postgres.js";
 import { DEFAULT_WORKSPACE_ID } from "../config/workspaceDefaults.js";
 
 /* Extend Request Type */
@@ -31,7 +31,14 @@ const isAuth = async (req: AuthRequest, res: Response, next: NextFunction) => {
         ) as { id: string; workspaceId?: string };
 
         // Check if user exists and is not blocked
-        const user = await User.findById(decoded.id);
+        const result = await postgres.query("SELECT id, role, workspace_id, is_blocked FROM users WHERE id = $1", [decoded.id]);
+        const row = result.rows[0];
+        const user = row ? {
+            id: row.id,
+            role: row.role,
+            workspaceId: row.workspace_id,
+            isBlocked: row.is_blocked
+        } : null;
 
         if (!user) {
             return res.status(401).json({

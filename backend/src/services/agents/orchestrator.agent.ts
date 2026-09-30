@@ -1,5 +1,6 @@
-import AnalysisReport from "../../models/analysisReport.model.js";
-import AnalysisRun from "../../models/analysisRun.model.js";
+import crypto from "crypto";
+import { postgres } from "../../config/postgres.js";
+import { IAnalysisReport } from "../../models/analysisReport.model.js";
 import { RunAnalysisInput } from "../../types/agent.types.js";
 import { researchCustomer, generateRecommendations, generatePartnerProductRecommendations } from "../llm/gemini.client.js";
 import { verifyAndFillGaps } from "./verify.agent.js";
@@ -95,14 +96,12 @@ export const runOrchestratorAgent = async (
   const startedAt = new Date();
   const workspace = await getWorkspaceSettings(workspaceId) || DEFAULT_WORKSPACE_SETTINGS;
 
-  const runDoc = (await AnalysisRun.create({
-    userId,
-    workspaceId,
-    status: "running",
-    input: { customerName: input.customerName, companyDomain: input.companyDomain },
-    agentRuns: {},
-    startedAt
-  } as any)) as any;
+  const runId = crypto.randomUUID();
+  await postgres.query(
+    `INSERT INTO analysis_runs (id, user_id, workspace_id, status, input, agent_runs, started_at)
+     VALUES ($1, $2, $3, 'running', $4::jsonb, '{}'::jsonb, $5)`,
+    [runId, userId, workspaceId, JSON.stringify({ customerName: input.customerName, companyDomain: input.companyDomain }), startedAt]
+  );
 
   try {
     // Step 0: Domain intelligence (MX lookup — no AI, no cost)
@@ -178,7 +177,7 @@ export const runOrchestratorAgent = async (
     const reportPayload = {
       userId,
       workspaceId,
-      runId: runDoc._id,
+      runId,
       customerName: input.customerName,
       companyDomain: input.companyDomain,
       annualSpend,
@@ -207,49 +206,65 @@ export const runOrchestratorAgent = async (
       overallConfidence
     };
 
-    const reportDoc = existingReportId
-      ? await AnalysisReport.findByIdAndUpdate(existingReportId, reportPayload, { new: true })
-      : await AnalysisReport.create(reportPayload as any);
+    const reportId = existingReportId || crypto.randomUUID();
+    const reportResult = existingReportId
+      ? await postgres.query(
+          `UPDATE analysis_reports SET run_id = $3, customer_name = $4, company_domain = $5, annual_spend = $6,
+             validated_profile = $7::jsonb, recommendations = $8::jsonb, strategy = $9::jsonb,
+             partner_product_recommendations = $10::jsonb, overall_confidence = $11, digest_text = NULL, updated_at = now()
+           WHERE id = $1 AND user_id = $2 AND workspace_id = $12 RETURNING id`,
+          [reportId, userId, runId, reportPayload.customerName, reportPayload.companyDomain, annualSpend,
+            JSON.stringify(reportPayload.validatedProfile), JSON.stringify(funding), JSON.stringify(strategy),
+            JSON.stringify(partnerProductRecommendations), overallConfidence, workspaceId]
+        )
+      : await postgres.query(
+          `INSERT INTO analysis_reports (id, user_id, workspace_id, run_id, customer_name, company_domain, annual_spend,
+             validated_profile, recommendations, strategy, overall_confidence, partner_product_recommendations)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9::jsonb, $10::jsonb, $11, $12::jsonb) RETURNING id`,
+          [reportId, userId, workspaceId, runId, reportPayload.customerName, reportPayload.companyDomain, annualSpend,
+            JSON.stringify(reportPayload.validatedProfile), JSON.stringify(funding), JSON.stringify(strategy),
+            overallConfidence, JSON.stringify(partnerProductRecommendations)]
+        );
 
-    if (!reportDoc) throw new Error("Failed to save report document");
+    if (!reportResult.rowCount) throw new Error("Failed to save report");
+    const reportDoc = { ...reportPayload, id: reportId, createdAt: startedAt, updatedAt: startedAt } as unknown as IAnalysisReport;
 
-    // Fire-and-forget: embed report and upsert to Pinecone
+    // Fire-and-forget: embed report and upsert to pgvector
     (async () => {
       try {
         const digest = buildDigest(reportDoc);
         const vector = await embedDocument(digest);
-        await upsertVector(String(reportDoc._id), vector, userId, workspaceId);
-        await AnalysisReport.findByIdAndUpdate(reportDoc._id, { digestText: digest });
+        await upsertVector(reportId, vector, userId, workspaceId);
+        await postgres.query("UPDATE analysis_reports SET digest_text = $2, updated_at = now() WHERE id = $1", [reportId, digest]);
       } catch (e) {
-        console.error("[embedding] failed for report", String(reportDoc._id), e);
+      console.error("[embedding] failed for report", reportId, e);
       }
     })();
 
     const endedAt = new Date();
     const durationMs = endedAt.getTime() - startedAt.getTime();
 
-    runDoc.status = "completed";
-    runDoc.agentRuns = {
+    const agentRuns = {
       research: { agent: "research-agent", ok: true, durationMs },
       strategy: { agent: "strategy-agent", ok: true, durationMs }
     };
-    runDoc.validatedProfile = reportPayload.validatedProfile;
-    runDoc.finalRecommendations = {
+    const finalRecommendations = {
       annualSpendUsed: annualSpend,
       annualSpendSource: "estimated",
       recommendations: funding,
       strategy,
       warnings
     };
-    runDoc.overallConfidence = overallConfidence;
-    runDoc.reportId = reportDoc._id;
-    runDoc.endedAt = endedAt;
-    runDoc.durationMs = durationMs;
-    await runDoc.save();
+    await postgres.query(
+      `UPDATE analysis_runs SET status = 'completed', agent_runs = $2::jsonb, validated_profile = $3::jsonb,
+         final_recommendations = $4::jsonb, overall_confidence = $5, report_id = $6, ended_at = $7,
+         duration_ms = $8, updated_at = now() WHERE id = $1`,
+      [runId, JSON.stringify(agentRuns), JSON.stringify(reportPayload.validatedProfile), JSON.stringify(finalRecommendations), overallConfidence, reportId, endedAt, durationMs]
+    );
 
     return {
-      runId: String(runDoc._id),
-      reportId: String(reportDoc._id),
+      runId,
+      reportId,
       status: "completed",
       overallConfidence,
       entityCheck: {
@@ -282,11 +297,10 @@ export const runOrchestratorAgent = async (
     };
   } catch (error) {
     const endedAt = new Date();
-    runDoc.status = "failed";
-    runDoc.error = error instanceof Error ? error.message : String(error);
-    runDoc.endedAt = endedAt;
-    runDoc.durationMs = endedAt.getTime() - startedAt.getTime();
-    await runDoc.save();
+    await postgres.query(
+      `UPDATE analysis_runs SET status = 'failed', error = $2, ended_at = $3, duration_ms = $4, updated_at = now() WHERE id = $1`,
+      [runId, error instanceof Error ? error.message : String(error), endedAt, endedAt.getTime() - startedAt.getTime()]
+    );
     throw error;
   }
 };
