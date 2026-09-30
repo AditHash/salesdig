@@ -20,10 +20,10 @@ export interface WorkspaceSettings {
 
 export const DEFAULT_WORKSPACE_SETTINGS: WorkspaceSettings = {
   companyName: "Workmates",
-  productName: "Cloud Catalyst",
-  tagline: "Company research and sales intelligence",
-  primaryColor: "#4f52d3",
-  accentColor: "#f5a623",
+  productName: "Salesdig",
+  tagline: "Open-source company research and sales intelligence",
+  primaryColor: "#0f766e",
+  accentColor: "#14b8a6",
   companyDescription: "Workmates is a cloud consulting and AWS partner company.",
   primaryCloudProvider: "AWS",
   salesServices: [

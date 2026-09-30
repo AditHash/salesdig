@@ -26,7 +26,10 @@ export const ChatPanel: React.FC<{ primaryColor?: string }> = ({ primaryColor = 
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   // Drag state
-  const [pos, setPos] = useState({ x: window.innerWidth - 96, y: window.innerHeight - 120 });
+  const [pos, setPos] = useState(() => ({
+    x: window.innerWidth - 96,
+    y: window.innerHeight - (window.innerWidth <= 640 ? 210 : 120),
+  }));
   const dragging = useRef(false);
   const dragOffset = useRef({ x: 0, y: 0 });
   const didDrag = useRef(false);
@@ -128,12 +131,13 @@ export const ChatPanel: React.FC<{ primaryColor?: string }> = ({ primaryColor = 
   const showSuggestions = messages.length === 1 && messages[0].role === 'assistant';
 
   // Panel position: open above/left of FAB
+  const panelWidth = Math.min(380, window.innerWidth - 24);
   const panelStyle: React.CSSProperties = {
     position: 'fixed',
-    left: Math.min(pos.x, window.innerWidth - 400),
+    left: Math.max(12, Math.min(pos.x, window.innerWidth - panelWidth - 12)),
     top: Math.max(10, pos.y - 600),
     zIndex: 50,
-    width: 380,
+    width: panelWidth,
     maxHeight: 'min(580px, calc(100vh - 120px))',
   };
 
