@@ -1,2 +1,7 @@
 *.md
 .DS_Store
+
+# Local environment files; keep safe example templates trackable.
+.env
+.env.*
+!.env.example
