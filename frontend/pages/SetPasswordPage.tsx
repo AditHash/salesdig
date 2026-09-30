@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { Eye, EyeOff, Lock } from 'lucide-react';
+import { SalesdigBrand } from '../components/SalesdigBrand';
 
 const API = import.meta.env.VITE_BACKEND_URL;
 
@@ -34,6 +35,7 @@ export const SetPasswordPage: React.FC = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-teal-50 to-slate-100 p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
+        <SalesdigBrand className="mb-6" />
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2.5 bg-teal-100 rounded-xl"><Lock className="w-5 h-5 text-teal-600" /></div>
           <div>

@@ -57,15 +57,21 @@ const App: React.FC = () => {
   const [librarySearchTerm, setLibrarySearchTerm] = useState('');
   const { user, setUser, loading } = useAuth();
   const [workspaceSettings, setWorkspaceSettings] = useState<WorkspaceSettings | null>(null);
+  const [workspaceSettingsLoaded, setWorkspaceSettingsLoaded] = useState(false);
 
   useEffect(() => {
     if (!user) {
       setWorkspaceSettings(null);
+      setWorkspaceSettingsLoaded(false);
       return;
     }
+    let active = true;
+    setWorkspaceSettingsLoaded(false);
     API.get<WorkspaceSettings>('/workspace/current')
-      .then(({ data }) => setWorkspaceSettings(data))
-      .catch(() => setWorkspaceSettings(null));
+      .then(({ data }) => { if (active) setWorkspaceSettings(data); })
+      .catch(() => { if (active) setWorkspaceSettings(null); })
+      .finally(() => { if (active) setWorkspaceSettingsLoaded(true); });
+    return () => { active = false; };
   }, [user?.id]);
 
   useEffect(() => {
@@ -307,7 +313,12 @@ const App: React.FC = () => {
               stepTimer={analysisStepTimer}
             />} />
             <Route path="/services" element={<ServicesView companyName={workspaceSettings?.companyName} services={workspaceSettings?.salesServices} showDefaultCatalog={workspaceSettings?.companyName === 'Workmates'} />} />
-            <Route path="/library" element={!fundingEnabled ? <Navigate to="/" replace /> : <LibraryView initialSearchTerm={librarySearchTerm} />} />
+            <Route path="/library" element={!workspaceSettingsLoaded
+              ? <div className="flex min-h-[60vh] items-center justify-center" role="status" aria-label="Loading workspace settings"><div className="h-8 w-8 animate-spin rounded-full border-b-2 border-teal-600" /></div>
+              : !fundingEnabled
+                ? <Navigate to="/" replace />
+                : <LibraryView initialSearchTerm={librarySearchTerm} />
+            } />
             <Route path="/activity" element={<ProtectedRoute adminOnly><ActivityView /></ProtectedRoute>} />
             <Route path="/history" element={<HistoryView />} />
             <Route path="/history/:id" element={<HistoryDetailView onRegenerate={handleGlobalRegenerate} regeneratingId={regeneratingId} />} />
