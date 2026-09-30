@@ -1,7 +1,7 @@
 
 import { FundingProgram, ServiceCategory } from './types';
 
-export const WORKMATES_SERVICES = [
+export const DEFAULT_SALES_SERVICES = [
   "Cloud Migration",
   "Infra/Application Modernization",
   "Database Migration / Modernization",
@@ -23,7 +23,7 @@ export const WORKMATES_SERVICES = [
   "Resource Transfer"
 ];
 
-export const WORKMATES_SERVICE_CATALOG: ServiceCategory[] = [
+export const DEFAULT_SERVICE_CATALOG: ServiceCategory[] = [
   {
     id: 'otc',
     title: 'OTC (One-Time Cost)',
@@ -88,7 +88,7 @@ export const WORKMATES_SERVICE_CATALOG: ServiceCategory[] = [
   {
     id: 'managed',
     title: 'Managed Services',
-    description: 'Recurring monthly support services where Workmates takes responsibility for uptime, security, and operations.',
+    description: 'Recurring monthly support services covering uptime, security, and operations.',
     services: [
       {
         name: "AWS Infra Managed Services",
@@ -141,14 +141,14 @@ export const WORKMATES_SERVICE_CATALOG: ServiceCategory[] = [
     services: [
       {
         name: "AWS Billing Transfer",
-        description: "Consolidating AWS billing under Workmates to unlock volume discounts and free Enterprise Support.",
-        example: "Moving a direct AWS payer account to Workmates to get a flat 3% discount and free CloudCheckr access.",
+        description: "Consolidating AWS billing through a qualified partner may unlock volume discounts and support benefits.",
+        example: "Reviewing a direct AWS payer account for partner pricing, support options, and billing tools.",
         fitFor: "Any AWS customer paying list price directly to AWS via credit card."
       },
       {
         name: "ISV Reselling",
         description: "Procurement of third-party software licenses (Commvault, Veeam, Zoho, etc.) at partner rates.",
-        example: "Buying 100 Veeam Backup licenses through Workmates at a lower cost than buying direct.",
+        example: "Comparing partner pricing for 100 Veeam Backup licenses with direct purchasing.",
         fitFor: "IT Procurement teams looking to consolidate vendor spend."
       }
     ]

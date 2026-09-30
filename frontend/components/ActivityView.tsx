@@ -21,9 +21,9 @@ interface FootprintData {
 }
 
 const ACTION_COLORS: Record<string, string> = {
-  PERFORM_ANALYSIS: '#4f52d3',
-  VIEW_ANALYSIS: '#6366f1',
-  VIEW_LIBRARY: '#a855f7',
+  PERFORM_ANALYSIS: '#0f766e',
+  VIEW_ANALYSIS: '#14b8a6',
+  VIEW_LIBRARY: '#0891b2',
   VIEW_SERVICES: '#10b981',
   VIEW_ACTIVITY: '#f59e0b',
   VIEW_ADMIN: '#ef4444',
@@ -35,9 +35,9 @@ const ACTION_COLORS: Record<string, string> = {
 const getColor = (action: string) => ACTION_COLORS[action] || '#94a3b8';
 
 const ACTION_BADGE: Record<string, string> = {
-  PERFORM_ANALYSIS: 'bg-indigo-50 text-indigo-700 border-indigo-100',
-  VIEW_ANALYSIS: 'bg-indigo-50 text-indigo-600 border-indigo-100',
-  VIEW_LIBRARY: 'bg-purple-50 text-purple-700 border-purple-100',
+  PERFORM_ANALYSIS: 'bg-teal-50 text-teal-700 border-teal-100',
+  VIEW_ANALYSIS: 'bg-teal-50 text-teal-600 border-teal-100',
+  VIEW_LIBRARY: 'bg-cyan-50 text-cyan-700 border-cyan-100',
   VIEW_SERVICES: 'bg-emerald-50 text-emerald-700 border-emerald-100',
   VIEW_ACTIVITY: 'bg-amber-50 text-amber-700 border-amber-100',
   VIEW_ADMIN: 'bg-rose-50 text-rose-700 border-rose-100',
@@ -73,7 +73,7 @@ const UserSummarySection = ({ userSummary, allUsers, selectedUser, setSelectedUs
       <div className="flex items-center justify-between mb-3">
         <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Users Overview ({userSummary.length})</p>
         {userSummary.length > LIMIT && (
-          <button onClick={() => setShowAll(s => !s)} className="text-xs font-bold text-indigo-500 hover:underline">
+          <button onClick={() => setShowAll(s => !s)} className="text-xs font-bold text-teal-500 hover:underline">
             {showAll ? 'Show less' : `Show all ${userSummary.length}`}
           </button>
         )}
@@ -88,12 +88,12 @@ const UserSummarySection = ({ userSummary, allUsers, selectedUser, setSelectedUs
             }}
             className={`text-left p-4 rounded-xl border transition-all ${
               allUsers.find(au => au.email === u.email)?.id === selectedUser
-                ? 'bg-indigo-50 border-indigo-300 shadow-sm'
-                : 'bg-white border-slate-200 hover:border-indigo-200'
+                ? 'bg-teal-50 border-teal-300 shadow-sm'
+                : 'bg-white border-slate-200 hover:border-teal-200'
             }`}
           >
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-cyan-600 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
                 {u.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
               </div>
               <div className="min-w-0">
@@ -109,8 +109,8 @@ const UserSummarySection = ({ userSummary, allUsers, selectedUser, setSelectedUs
 };
 
 const AnalysisMetaCard = ({ meta }: { meta: string }) => (
-  <div className="mt-2 rounded-xl border border-indigo-100 bg-indigo-50/50 px-3 py-2">
-    <p className="text-xs font-semibold text-indigo-800">{meta}</p>
+  <div className="mt-2 rounded-xl border border-teal-100 bg-teal-50/50 px-3 py-2">
+    <p className="text-xs font-semibold text-teal-800">{meta}</p>
   </div>
 );
 
@@ -208,7 +208,7 @@ export const ActivityView: React.FC = () => {
     [stats.actionBreakdown]
   );
 
-  const PIE_COLORS = ['#4f52d3', '#a855f7', '#10b981', '#f59e0b', '#ef4444', '#06b6d4'];
+  const PIE_COLORS = ['#0f766e', '#0891b2', '#10b981', '#f59e0b', '#ef4444', '#06b6d4'];
 
   const grouped = useMemo(() => {
     const groups: Record<string, FootprintData[]> = {};
@@ -299,14 +299,14 @@ export const ActivityView: React.FC = () => {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
-            <Activity className="w-6 h-6 text-indigo-500" /> Activity Analytics
+            <Activity className="w-6 h-6 text-teal-500" /> Activity Analytics
           </h1>
           <p className="text-sm text-slate-500 mt-0.5">Track usage patterns and platform interactions</p>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={exportCSV}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-600 hover:text-indigo-600 hover:border-indigo-200 transition-all"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-600 hover:text-teal-600 hover:border-teal-200 transition-all"
           >
             <Download className="w-4 h-4" /> Export CSV
           </button>
@@ -319,7 +319,7 @@ export const ActivityView: React.FC = () => {
                 setFootprints(res.data.data); setTotal(res.data.total); setTotalPages(res.data.totalPages);
               } finally { setLoading(false); }
             }}
-            className="p-2.5 rounded-xl border border-slate-200 bg-white text-slate-500 hover:text-indigo-600 hover:border-indigo-200 transition-all"
+            className="p-2.5 rounded-xl border border-slate-200 bg-white text-slate-500 hover:text-teal-600 hover:border-teal-200 transition-all"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
@@ -331,13 +331,13 @@ export const ActivityView: React.FC = () => {
         <div className="flex gap-1 p-1 bg-slate-100 rounded-xl w-fit mb-6">
           <button
             onClick={() => setTab('mine')}
-            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${tab === 'mine' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${tab === 'mine' ? 'bg-white text-teal-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
           >
             <User className="w-4 h-4 inline mr-1.5" />My Activity
           </button>
           <button
             onClick={() => setTab('all')}
-            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${tab === 'all' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${tab === 'all' ? 'bg-white text-teal-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
           >
             <Users className="w-4 h-4 inline mr-1.5" />All Users
           </button>
@@ -349,22 +349,22 @@ export const ActivityView: React.FC = () => {
         <div className="mb-6 space-y-4">
           {/* Stat cards */}
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-            <StatCard label="Total Analyses Run" value={analysisKpis.total} icon={Zap} color="text-indigo-600" />
-            <StatCard label="Analyses This Month" value={analysisKpis.thisMonth} icon={Calendar} color="text-purple-600" />
+            <StatCard label="Total Analyses Run" value={analysisKpis.total} icon={Zap} color="text-teal-600" />
+            <StatCard label="Analyses This Month" value={analysisKpis.thisMonth} icon={Calendar} color="text-cyan-600" />
             <StatCard label="Analyses This Week" value={analysisKpis.thisWeek} icon={TrendingUp} color="text-emerald-600" />
           </div>
 
           {/* Daily trend */}
           <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
             <p className="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
-              <BarChart2 className="w-4 h-4 text-indigo-500" /> Analyses — Last 30 Days
+              <BarChart2 className="w-4 h-4 text-teal-500" /> Analyses — Last 30 Days
             </p>
             <ResponsiveContainer width="100%" height={180}>
               <BarChart data={analysisKpis.daily} barSize={10}>
                 <XAxis dataKey="day" tick={{ fontSize: 9, fill: '#94a3b8' }} axisLine={false} tickLine={false} interval={4} />
                 <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} allowDecimals={false} />
                 <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 12 }} cursor={{ fill: '#f1f5f9' }} />
-                <Bar dataKey="count" fill="#4f52d3" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="count" fill="#0f766e" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -373,14 +373,14 @@ export const ActivityView: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
               <p className="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-purple-500" /> Monthly Trend — Last 12 Months
+                <Calendar className="w-4 h-4 text-cyan-500" /> Monthly Trend — Last 12 Months
               </p>
               <ResponsiveContainer width="100%" height={180}>
                 <BarChart data={analysisKpis.monthly} barSize={16}>
                   <XAxis dataKey="month" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} allowDecimals={false} />
                   <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 12 }} cursor={{ fill: '#f1f5f9' }} />
-                  <Bar dataKey="count" fill="#a855f7" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="count" fill="#0891b2" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -400,7 +400,7 @@ export const ActivityView: React.FC = () => {
                         <p className="text-sm font-semibold text-slate-800 truncate">{u.name}</p>
                         <p className="text-xs text-slate-400 truncate">{u.email}</p>
                       </div>
-                      <span className="text-sm font-extrabold text-indigo-600 flex-shrink-0">{u.count}</span>
+                      <span className="text-sm font-extrabold text-teal-600 flex-shrink-0">{u.count}</span>
                     </div>
                   ))}
                 </div>
@@ -422,8 +422,8 @@ export const ActivityView: React.FC = () => {
 
       {/* General Stats Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <StatCard label="Total Events" value={total} icon={Activity} color="text-indigo-600" />
-        <StatCard label="Unique Actions" value={uniqueActions} icon={TrendingUp} color="text-purple-600" />
+        <StatCard label="Total Events" value={total} icon={Activity} color="text-teal-600" />
+        <StatCard label="Unique Actions" value={uniqueActions} icon={TrendingUp} color="text-cyan-600" />
         <StatCard label="Current Page" value={`${page} / ${totalPages}`} icon={Calendar} color="text-emerald-600" />
         <StatCard label="Top Action" value={mostUsed} icon={Filter} color="text-amber-600" />
       </div>
@@ -442,7 +442,7 @@ export const ActivityView: React.FC = () => {
                   contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 12 }}
                   cursor={{ fill: '#f1f5f9' }}
                 />
-                <Bar dataKey="count" fill="#4f52d3" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="count" fill="#0f766e" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -491,13 +491,13 @@ export const ActivityView: React.FC = () => {
             placeholder="Search actions, pages, meta..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all"
           />
         </div>
         <select
           value={actionFilter}
           onChange={e => setActionFilter(e.target.value)}
-          className="px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+          className="px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
         >
           <option value="all">All Actions</option>
           {stats.actions.map(a => <option key={a} value={a}>{a}</option>)}
@@ -506,7 +506,7 @@ export const ActivityView: React.FC = () => {
           <select
             value={selectedUser}
             onChange={e => setSelectedUser(e.target.value)}
-            className="px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+            className="px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
           >
             <option value="all">All Users</option>
             {allUsers.map(u => (
@@ -518,14 +518,14 @@ export const ActivityView: React.FC = () => {
           type="date"
           value={dateFrom}
           onChange={e => setDateFrom(e.target.value)}
-          className="px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+          className="px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
           title="From date"
         />
         <input
           type="date"
           value={dateTo}
           onChange={e => setDateTo(e.target.value)}
-          className="px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+          className="px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
           title="To date"
         />
         {hasFilters && (
@@ -541,7 +541,7 @@ export const ActivityView: React.FC = () => {
       {/* Activity Feed */}
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <RefreshCw className="w-8 h-8 text-indigo-500 animate-spin" />
+          <RefreshCw className="w-8 h-8 text-teal-500 animate-spin" />
         </div>
       ) : Object.keys(grouped).length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -564,7 +564,7 @@ export const ActivityView: React.FC = () => {
 
               <div className="space-y-2">
                 {items.map(fp => (
-                  <div key={fp._id} className="bg-white rounded-xl border border-slate-100 p-4 hover:border-indigo-100 hover:shadow-sm transition-all">
+                  <div key={fp._id} className="bg-white rounded-xl border border-slate-100 p-4 hover:border-teal-100 hover:shadow-sm transition-all">
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                       <div className="flex items-start gap-3 flex-1">
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5" style={{ backgroundColor: getColor(fp.action) + '20' }}>
@@ -580,7 +580,7 @@ export const ActivityView: React.FC = () => {
                               {fp.page}
                             </span>
                             {tab === 'all' && typeof fp.userId === 'object' && fp.userId && (
-                              <span className="px-2 py-0.5 bg-indigo-50 text-indigo-600 text-xs font-semibold rounded-md border border-indigo-100">
+                              <span className="px-2 py-0.5 bg-teal-50 text-teal-600 text-xs font-semibold rounded-md border border-teal-100">
                                 {fp.userId.name}
                               </span>
                             )}
@@ -619,7 +619,7 @@ export const ActivityView: React.FC = () => {
             <button
               onClick={() => setPage(p => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="px-4 py-2 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-600 hover:border-indigo-300 hover:text-indigo-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              className="px-4 py-2 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-600 hover:border-teal-300 hover:text-teal-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
             >
               ← Prev
             </button>
@@ -628,7 +628,7 @@ export const ActivityView: React.FC = () => {
                 const p = totalPages <= 5 ? i + 1 : page <= 3 ? i + 1 : page >= totalPages - 2 ? totalPages - 4 + i : page - 2 + i;
                 return (
                   <button key={p} onClick={() => setPage(p)}
-                    className={`w-9 h-9 rounded-xl text-sm font-bold transition-all ${page === p ? 'bg-indigo-600 text-white shadow-md' : 'bg-white border border-slate-200 text-slate-600 hover:border-indigo-300 hover:text-indigo-600'}`}
+                    className={`w-9 h-9 rounded-xl text-sm font-bold transition-all ${page === p ? 'bg-teal-600 text-white shadow-md' : 'bg-white border border-slate-200 text-slate-600 hover:border-teal-300 hover:text-teal-600'}`}
                   >{p}</button>
                 );
               })}
@@ -636,7 +636,7 @@ export const ActivityView: React.FC = () => {
             <button
               onClick={() => setPage(p => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
-              className="px-4 py-2 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-600 hover:border-indigo-300 hover:text-indigo-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              className="px-4 py-2 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-600 hover:border-teal-300 hover:text-teal-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
             >
               Next →
             </button>

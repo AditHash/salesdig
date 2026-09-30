@@ -16,7 +16,7 @@ const PasswordInput = ({ value, onChange, placeholder = '•••••••�
         <div className="relative">
             <input type={show ? 'text' : 'password'} value={value} onChange={e => onChange(e.target.value)}
                 placeholder={placeholder} required={required} minLength={minLength}
-                className="w-full px-4 py-2.5 pr-10 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" />
+                className="w-full px-4 py-2.5 pr-10 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all" />
             <button type="button" onClick={() => setShow(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                 {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
@@ -44,20 +44,20 @@ const AddUserModal = ({ onClose, onCreated }: { onClose: () => void; onCreated: 
                         <div key={key}>
                             <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">{label}</label>
                             <input type={type} required value={(form as any)[key]} onChange={e => setForm({ ...form, [key]: e.target.value })}
-                                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" />
+                                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all" />
                         </div>
                     ))}
                     <div>
                         <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Role</label>
                         <select value={form.role} onChange={e => setForm({ ...form, role: e.target.value })}
-                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all">
                             <option value="user">User</option>
                             <option value="admin">Admin</option>
                         </select>
                     </div>
                     <p className="text-xs text-slate-400">An invite email will be sent to the user to set their password.</p>
                     <button type="submit" disabled={loading}
-                        className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-sm transition-all disabled:opacity-50 mt-2">
+                        className="w-full py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-bold shadow-sm transition-all disabled:opacity-50 mt-2">
                         {loading ? 'Sending invite...' : 'Send Invite'}
                     </button>
                 </form>
@@ -104,7 +104,7 @@ export const UsersView: React.FC = () => {
             <div className="flex items-center justify-between mb-6">
                 <div>
                     <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
-                        <Users className="w-6 h-6 text-indigo-500" /> User Management
+                        <Users className="w-6 h-6 text-teal-500" /> User Management
                     </h1>
                     <p className="text-sm text-slate-500 mt-0.5">Manage platform access and user accounts</p>
                 </div>
@@ -114,20 +114,20 @@ export const UsersView: React.FC = () => {
                 <div className="relative flex-1">
                     <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <input type="text" placeholder="Search by name or email..." value={search} onChange={e => setSearch(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" />
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all" />
                 </div>
-                <button onClick={fetchUsers} className="p-2.5 rounded-xl border border-slate-200 bg-white text-slate-500 hover:text-indigo-600 transition-all">
+                <button onClick={fetchUsers} className="p-2.5 rounded-xl border border-slate-200 bg-white text-slate-500 hover:text-teal-600 transition-all">
                     <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                 </button>
                 <button onClick={() => setShowAdd(true)}
-                    className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-sm transition-all">
+                    className="flex items-center gap-2 px-4 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-bold shadow-sm transition-all">
                     <Plus className="w-4 h-4" /> Add User
                 </button>
             </div>
 
             <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
                 {loading ? (
-                    <div className="flex justify-center py-16"><div className="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" /></div>
+                    <div className="flex justify-center py-16"><div className="w-8 h-8 border-2 border-teal-600 border-t-transparent rounded-full animate-spin" /></div>
                 ) : (
                     <table className="w-full text-sm">
                         <thead>
@@ -146,7 +146,7 @@ export const UsersView: React.FC = () => {
                                 <tr key={u._id} className="hover:bg-slate-50 transition-colors group">
                                     <td className="px-5 py-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
+                                            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
                                                 {u.name.charAt(0).toUpperCase()}
                                             </div>
                                             <span className="font-bold text-slate-800">{u.name}</span>
@@ -154,7 +154,7 @@ export const UsersView: React.FC = () => {
                                     </td>
                                     <td className="px-5 py-4 text-slate-500 hidden md:table-cell">{u.email}</td>
                                     <td className="px-5 py-4">
-                                        <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${u.role === 'admin' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600'}`}>
+                                        <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${u.role === 'admin' ? 'bg-teal-100 text-teal-700' : 'bg-slate-100 text-slate-600'}`}>
                                             {u.role}
                                         </span>
                                     </td>

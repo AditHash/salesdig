@@ -1,5 +1,5 @@
 {
-  "name": "workmates-cloudcatalyst",
-  "description": "CloudCatalyst - An intelligent assistant for identifying customer AWS funding eligibility using AI-driven research and workload analysis.",
+  "name": "salesdig",
+  "description": "Open-source company research and sales intelligence for account teams.",
   "requestFramePermissions": []
 }

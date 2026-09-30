@@ -43,14 +43,14 @@ export const HistoryDetailView: React.FC<Props> = ({ onRegenerate, regeneratingI
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[60vh]">
-      <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+      <Loader2 className="w-8 h-8 animate-spin text-teal-500" />
     </div>
   );
 
   if (error || !report) return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
       <p className="text-slate-500 mb-4">Report not found.</p>
-      <button onClick={() => navigate('/history')} className="text-indigo-600 font-bold text-sm hover:underline">
+      <button onClick={() => navigate('/history')} className="text-teal-600 font-bold text-sm hover:underline">
         ← Back to History
       </button>
     </div>
@@ -61,7 +61,7 @@ export const HistoryDetailView: React.FC<Props> = ({ onRegenerate, regeneratingI
       {/* Back + meta bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <button onClick={() => navigate('/history')}
-          className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors w-fit">
+          className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-teal-600 transition-colors w-fit">
           <ArrowLeft className="w-4 h-4" /> Back to History
         </button>
         <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
@@ -79,7 +79,7 @@ export const HistoryDetailView: React.FC<Props> = ({ onRegenerate, regeneratingI
           )} */}
           {isOwner && (
             <button onClick={handleRegenerate} disabled={isRegenerating}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition-all disabled:opacity-60">
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs transition-all disabled:opacity-60">
               {isRegenerating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
               {isRegenerating ? 'Regenerating…' : 'Regenerate'}
             </button>

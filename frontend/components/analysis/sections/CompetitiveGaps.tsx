@@ -24,12 +24,12 @@ export const CompetitiveGaps: React.FC<{ gaps: AgentCompetitorGap[] }> = ({ gaps
                 <div className="flex flex-wrap gap-2">
                   {g.domainAdvantages.map((d, j) => (
                     <div key={j} className="group relative">
-                      <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700 border border-indigo-200 cursor-default">
+                      <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-teal-100 text-teal-700 border border-teal-200 cursor-default">
                         {d.domain}
                       </span>
                       {/* Tooltip on hover */}
                       <div className="absolute bottom-full left-0 mb-1.5 hidden group-hover:block z-10 w-64 bg-slate-900 text-white text-xs rounded-lg p-2.5 leading-relaxed shadow-xl">
-                        <span className="font-bold text-indigo-300">{d.domain}: </span>{d.advantage}
+                        <span className="font-bold text-teal-300">{d.domain}: </span>{d.advantage}
                       </div>
                     </div>
                   ))}
@@ -42,7 +42,7 @@ export const CompetitiveGaps: React.FC<{ gaps: AgentCompetitorGap[] }> = ({ gaps
               <div className="px-5 pt-4 pb-0 space-y-2">
                 {g.domainAdvantages.map((d, j) => (
                   <div key={j} className="flex gap-2 text-sm">
-                    <span className="font-bold text-indigo-600 min-w-[120px] text-[11px] uppercase tracking-wide pt-0.5">{d.domain}</span>
+                    <span className="font-bold text-teal-600 min-w-[120px] text-[11px] uppercase tracking-wide pt-0.5">{d.domain}</span>
                     <span className="text-slate-600 leading-relaxed">{d.advantage}</span>
                   </div>
                 ))}
@@ -60,15 +60,15 @@ export const CompetitiveGaps: React.FC<{ gaps: AgentCompetitorGap[] }> = ({ gaps
                   <p className="text-sm text-rose-900 leading-relaxed">"{g.customerGap}"</p>
                 </div>
                 {/* Fix */}
-                <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4">
+                <div className="bg-teal-50 border border-teal-100 rounded-xl p-4">
                   <div className="flex items-center gap-1.5 mb-2">
-                    <Zap className="w-3.5 h-3.5 text-indigo-600" />
-                    <span className="text-[11px] font-bold text-indigo-700 uppercase tracking-widest">Innovation Fix</span>
+                    <Zap className="w-3.5 h-3.5 text-teal-600" />
+                    <span className="text-[11px] font-bold text-teal-700 uppercase tracking-widest">Innovation Fix</span>
                   </div>
                   <p className="text-sm text-slate-800 font-semibold leading-relaxed">{g.proposedInnovation}</p>
-                  <div className="mt-3 pt-3 border-t border-indigo-100">
+                  <div className="mt-3 pt-3 border-t border-teal-100">
                     <span className="text-[11px] font-bold text-slate-400 uppercase mr-1">Deploy:</span>
-                    <span className="text-[11px] font-bold text-indigo-700 bg-white px-2 py-0.5 rounded border border-indigo-200">{g.workmatesService}</span>
+                    <span className="text-[11px] font-bold text-teal-700 bg-white px-2 py-0.5 rounded border border-teal-200">{g.workmatesService}</span>
                   </div>
                 </div>
                 {/* Value */}

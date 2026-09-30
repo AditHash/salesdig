@@ -12,7 +12,7 @@ const PasswordInput = ({ value, onChange, placeholder = '•••••••�
         <div className="relative">
             <input type={show ? 'text' : 'password'} value={value} onChange={e => onChange(e.target.value)}
                 placeholder={placeholder} required={required} minLength={6}
-                className="w-full px-4 py-2.5 pr-10 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" />
+                className="w-full px-4 py-2.5 pr-10 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all" />
             <button type="button" onClick={() => setShow(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                 {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
@@ -59,7 +59,7 @@ export const ProfileView: React.FC = () => {
         <div className="p-6 md:p-8 max-w-xl mx-auto pb-20">
             <div className="mb-6">
                 <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
-                    <User className="w-6 h-6 text-indigo-500" /> My Profile
+                    <User className="w-6 h-6 text-teal-500" /> My Profile
                 </h1>
                 <p className="text-sm text-slate-500 mt-0.5">Manage your account details</p>
             </div>
@@ -68,20 +68,20 @@ export const ProfileView: React.FC = () => {
             <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm mb-6">
                 <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-4">Account Info</h3>
                 <div className="flex items-center gap-4 mb-5">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center text-2xl font-bold shadow-lg flex-shrink-0">
+                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-600 text-white flex items-center justify-center text-2xl font-bold shadow-lg flex-shrink-0">
                         {user?.name?.charAt(0).toUpperCase()}
                     </div>
                     <div>
                         <p className="text-lg font-extrabold text-slate-900">{user?.name}</p>
                         <p className="text-sm text-slate-500">{user?.email}</p>
-                        <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700 mt-1 inline-block">{user?.role}</span>
+                        <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-700 mt-1 inline-block">{user?.role}</span>
                     </div>
                 </div>
                 <form onSubmit={handleUpdateName} className="grid grid-cols-1 gap-3">
                     <div>
                         <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Full Name</label>
                         <input type="text" value={name} onChange={e => setName(e.target.value)}
-                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" />
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all" />
                     </div>
                     <div>
                         <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Email Address</label>
@@ -89,7 +89,7 @@ export const ProfileView: React.FC = () => {
                             className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-500 cursor-not-allowed" />
                     </div>
                     <button type="submit" disabled={nameLoading || name.trim() === user?.name}
-                        className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-sm transition-all disabled:opacity-50">
+                        className="w-full py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-bold shadow-sm transition-all disabled:opacity-50">
                         {nameLoading ? 'Saving...' : 'Save Name'}
                     </button>
                 </form>
@@ -98,7 +98,7 @@ export const ProfileView: React.FC = () => {
             {/* Change Password */}
             <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
                 <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-4 flex items-center gap-2">
-                    <Lock className="w-4 h-4 text-indigo-500" /> Change Password
+                    <Lock className="w-4 h-4 text-teal-500" /> Change Password
                 </h3>
                 <form onSubmit={handleChangePassword} className="space-y-4">
                     <div>
@@ -114,7 +114,7 @@ export const ProfileView: React.FC = () => {
                         <PasswordInput value={confirmPassword} onChange={setConfirmPassword} placeholder="Confirm new password" required />
                     </div>
                     <button type="submit" disabled={loading}
-                        className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-sm transition-all disabled:opacity-50 mt-2">
+                        className="w-full py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-bold shadow-sm transition-all disabled:opacity-50 mt-2">
                         {loading ? 'Updating...' : 'Update Password'}
                     </button>
                 </form>

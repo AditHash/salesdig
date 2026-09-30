@@ -21,7 +21,7 @@ export const StrategicRoadmap: React.FC<{ strategy: AgentStrategy }> = ({ strate
             {resolutions.map((r, i) => (
               <div key={i} className="bg-white rounded-2xl border border-slate-200 overflow-hidden hover:border-emerald-300 hover:shadow-md transition-all group">
                 <div className="bg-slate-50 border-b border-slate-100 px-5 py-3">
-                  <span className="text-[11px] font-black px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-indigo-700 uppercase tracking-wide">
+                  <span className="text-[11px] font-black px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-teal-700 uppercase tracking-wide">
                     {r.workmatesService}
                   </span>
                   <p className="text-sm font-bold text-slate-800 mt-2">{r.painPoint}</p>
@@ -43,7 +43,7 @@ export const StrategicRoadmap: React.FC<{ strategy: AgentStrategy }> = ({ strate
       {roadmap.length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-indigo-50 rounded-lg"><Map className="w-4 h-4 text-indigo-600" /></div>
+            <div className="p-2 bg-teal-50 rounded-lg"><Map className="w-4 h-4 text-teal-600" /></div>
             <h2 className="text-lg font-black text-slate-900">Cloud Adoption Timeline</h2>
           </div>
 
@@ -55,21 +55,21 @@ export const StrategicRoadmap: React.FC<{ strategy: AgentStrategy }> = ({ strate
                 <div key={i} className="relative z-10 flex flex-col">
                   {/* Step dot */}
                   <div className="flex justify-center mb-4">
-                    <div className="w-16 h-16 rounded-2xl bg-white border-2 border-indigo-300 flex flex-col items-center justify-center shadow-md">
-                      <span className="text-[10px] font-bold text-indigo-400 uppercase">Phase</span>
-                      <span className="text-xl font-black text-indigo-600">{String(i + 1).padStart(2, '0')}</span>
+                    <div className="w-16 h-16 rounded-2xl bg-white border-2 border-teal-300 flex flex-col items-center justify-center shadow-md">
+                      <span className="text-[10px] font-bold text-teal-400 uppercase">Phase</span>
+                      <span className="text-xl font-black text-teal-600">{String(i + 1).padStart(2, '0')}</span>
                     </div>
                   </div>
-                  <div className="bg-white rounded-2xl border border-slate-200 p-4 flex-1 hover:border-indigo-300 hover:shadow-md transition-all">
+                  <div className="bg-white rounded-2xl border border-slate-200 p-4 flex-1 hover:border-teal-300 hover:shadow-md transition-all">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">{phase.duration}</span>
+                      <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-100">{phase.duration}</span>
                     </div>
                     <h4 className="font-black text-slate-900 text-sm mb-1">{phase.phaseName}</h4>
-                    <p className="text-[11px] font-bold text-indigo-600 uppercase tracking-wide mb-3">{phase.focusArea}</p>
+                    <p className="text-[11px] font-bold text-teal-600 uppercase tracking-wide mb-3">{phase.focusArea}</p>
                     <ul className="space-y-1.5 mb-4">
                       {phase.activities.map((a, j) => (
                         <li key={j} className="flex items-start gap-1.5 text-xs text-slate-600">
-                          <span className="w-1 h-1 rounded-full bg-indigo-400 mt-1.5 flex-shrink-0" />{a}
+                          <span className="w-1 h-1 rounded-full bg-teal-400 mt-1.5 flex-shrink-0" />{a}
                         </li>
                       ))}
                     </ul>
@@ -88,7 +88,7 @@ export const StrategicRoadmap: React.FC<{ strategy: AgentStrategy }> = ({ strate
             {roadmap.map((phase, i) => (
               <div key={i} className="flex gap-4">
                 <div className="flex flex-col items-center">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-black text-sm flex-shrink-0">
+                  <div className="w-10 h-10 rounded-xl bg-teal-600 text-white flex items-center justify-center font-black text-sm flex-shrink-0">
                     {String(i + 1).padStart(2, '0')}
                   </div>
                   {i < roadmap.length - 1 && <div className="w-0.5 flex-1 bg-slate-200 my-2" />}
@@ -96,13 +96,13 @@ export const StrategicRoadmap: React.FC<{ strategy: AgentStrategy }> = ({ strate
                 <div className="bg-white rounded-2xl border border-slate-200 p-4 flex-1 mb-3">
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="font-black text-slate-900 text-sm">{phase.phaseName}</h4>
-                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">{phase.duration}</span>
+                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-100">{phase.duration}</span>
                   </div>
-                  <p className="text-[11px] font-bold text-indigo-600 uppercase tracking-wide mb-2">{phase.focusArea}</p>
+                  <p className="text-[11px] font-bold text-teal-600 uppercase tracking-wide mb-2">{phase.focusArea}</p>
                   <ul className="space-y-1 mb-3">
                     {phase.activities.map((a, j) => (
                       <li key={j} className="flex items-start gap-1.5 text-xs text-slate-600">
-                        <span className="w-1 h-1 rounded-full bg-indigo-400 mt-1.5 flex-shrink-0" />{a}
+                        <span className="w-1 h-1 rounded-full bg-teal-400 mt-1.5 flex-shrink-0" />{a}
                       </li>
                     ))}
                   </ul>

@@ -43,13 +43,13 @@ export const LibraryView: React.FC<LibraryViewProps> = ({ initialSearchTerm }) =
 
   const getCategoryIcon = (category: string) => {
     switch(category) {
-      case 'Startup': return <Rocket className="w-5 h-5 text-indigo-500" />;
+      case 'Startup': return <Rocket className="w-5 h-5 text-teal-500" />;
       case 'Migration': return <Repeat className="w-5 h-5 text-orange-500" />;
       case 'Optimization': return <TrendingUp className="w-5 h-5 text-emerald-500" />;
       case 'Innovation': return <Lightbulb className="w-5 h-5 text-amber-500" />;
       case 'Enterprise': return <Building2 className="w-5 h-5 text-slate-700" />;
       case 'Modernization': return <RefreshCw className="w-5 h-5 text-blue-500" />;
-      default: return <Layers className="w-5 h-5 text-indigo-400" />;
+      default: return <Layers className="w-5 h-5 text-teal-400" />;
     }
   };
 
@@ -60,15 +60,15 @@ export const LibraryView: React.FC<LibraryViewProps> = ({ initialSearchTerm }) =
         
         {/* Hero Header */}
         <div className="relative overflow-hidden rounded-3xl bg-slate-900 text-white p-8 md:p-12 shadow-2xl mb-10">
-            <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-indigo-500 rounded-full blur-3xl opacity-20"></div>
+            <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-teal-500 rounded-full blur-3xl opacity-20"></div>
             <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-64 h-64 bg-blue-500 rounded-full blur-3xl opacity-20"></div>
             
             <div className="relative z-10 max-w-2xl">
             <div className="flex items-center gap-3 mb-4">
                 <div className="p-2 bg-white/10 backdrop-blur-md rounded-lg border border-white/20">
-                   <BookOpen className="w-5 h-5 text-indigo-300" />
+                   <BookOpen className="w-5 h-5 text-teal-300" />
                 </div>
-                <span className="text-sm font-bold tracking-wider text-indigo-300 uppercase">Knowledge Hub</span>
+                <span className="text-sm font-bold tracking-wider text-teal-300 uppercase">Knowledge Hub</span>
             </div>
             <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-4 leading-tight">
                 AWS Funding & <br/> Program Library
@@ -91,7 +91,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({ initialSearchTerm }) =
                     onClick={() => setSelectedCategory(cat)}
                     className={`whitespace-nowrap px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 flex-shrink-0 ${
                     selectedCategory === cat
-                        ? 'bg-slate-900 text-white shadow-lg shadow-indigo-500/20 scale-105' 
+                        ? 'bg-slate-900 text-white shadow-lg shadow-teal-500/20 scale-105'
                         : 'bg-white/50 text-slate-500 hover:bg-white hover:text-slate-900 border border-transparent hover:border-slate-200'
                     }`}
                 >
@@ -103,11 +103,11 @@ export const LibraryView: React.FC<LibraryViewProps> = ({ initialSearchTerm }) =
             {/* Search */}
             <div className="relative w-full md:w-80 group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Search className="h-4 w-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
+                    <Search className="h-4 w-4 text-slate-400 group-focus-within:text-teal-500 transition-colors" />
                 </div>
                 <input
                 type="text"
-                className="block w-full pl-10 pr-4 py-2.5 border border-transparent rounded-xl bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-200 transition-all font-medium shadow-sm"
+                className="block w-full pl-10 pr-4 py-2.5 border border-transparent rounded-xl bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-200 transition-all font-medium shadow-sm"
                 placeholder="Search programs..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -130,9 +130,9 @@ export const LibraryView: React.FC<LibraryViewProps> = ({ initialSearchTerm }) =
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {filteredPrograms.map((program) => (
-                <div key={program.id} className="group relative flex flex-col bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-indigo-200 transition-all duration-300 overflow-hidden animate-fade-in-up">
+                <div key={program.id} className="group relative flex flex-col bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-teal-200 transition-all duration-300 overflow-hidden animate-fade-in-up">
                     {/* Hover Gradient Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/0 via-transparent to-indigo-50/0 group-hover:from-indigo-50/30 group-hover:to-blue-50/30 transition-all duration-500 pointer-events-none"></div>
+                    <div className="absolute inset-0 bg-gradient-to-br from-teal-50/0 via-transparent to-teal-50/0 group-hover:from-teal-50/30 group-hover:to-blue-50/30 transition-all duration-500 pointer-events-none"></div>
 
                     <div className="p-6 md:p-8 flex flex-col h-full relative z-10">
                         {/* Card Header */}
@@ -142,7 +142,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({ initialSearchTerm }) =
                                     {getCategoryIcon(program.category)}
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-bold text-slate-900 group-hover:text-indigo-700 transition-colors">
+                                    <h3 className="text-xl font-bold text-slate-900 group-hover:text-teal-700 transition-colors">
                                         {program.name}
                                     </h3>
                                     <span className="inline-flex items-center mt-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 uppercase tracking-wide">
@@ -171,12 +171,12 @@ export const LibraryView: React.FC<LibraryViewProps> = ({ initialSearchTerm }) =
                              </div>
 
                              {/* Example Box */}
-                             <div className="flex items-start gap-3 p-3 rounded-xl bg-indigo-50/30 border border-indigo-100/50 group-hover:bg-indigo-50/50 transition-colors">
-                                <div className="mt-0.5 p-1 bg-indigo-100 rounded-lg">
-                                    <Zap className="w-3.5 h-3.5 text-indigo-600" />
+                             <div className="flex items-start gap-3 p-3 rounded-xl bg-teal-50/30 border border-teal-100/50 group-hover:bg-teal-50/50 transition-colors">
+                                <div className="mt-0.5 p-1 bg-teal-100 rounded-lg">
+                                    <Zap className="w-3.5 h-3.5 text-teal-600" />
                                 </div>
                                 <div>
-                                    <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wide block mb-0.5">Real World Use Case</span>
+                                    <span className="text-[10px] font-bold text-teal-600 uppercase tracking-wide block mb-0.5">Real World Use Case</span>
                                     <p className="text-xs text-slate-700 italic leading-snug">"{program.exampleScenario}"</p>
                                 </div>
                              </div>
@@ -192,7 +192,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({ initialSearchTerm }) =
                                 className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-300 ${
                                     expandedProgramId === program.id
                                     ? 'bg-slate-900 text-white shadow-md'
-                                    : 'bg-white text-slate-500 hover:bg-slate-50 hover:text-indigo-600 border border-slate-200'
+                                    : 'bg-white text-slate-500 hover:bg-slate-50 hover:text-teal-600 border border-slate-200'
                                 }`}
                             >
                                 <span className="uppercase tracking-wider">

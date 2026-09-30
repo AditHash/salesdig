@@ -32,10 +32,10 @@ export const SetPasswordPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-slate-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-teal-50 to-slate-100 p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2.5 bg-indigo-100 rounded-xl"><Lock className="w-5 h-5 text-indigo-600" /></div>
+          <div className="p-2.5 bg-teal-100 rounded-xl"><Lock className="w-5 h-5 text-teal-600" /></div>
           <div>
             <h1 className="text-xl font-black text-slate-900">Set Your Password</h1>
             <p className="text-xs text-slate-400">Choose a strong password for your account</p>
@@ -50,7 +50,7 @@ export const SetPasswordPage: React.FC = () => {
               <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">{label}</label>
               <div className="relative">
                 <input type={show ? 'text' : 'password'} value={value} onChange={e => onChange(e.target.value)} required minLength={6}
-                  className="w-full px-4 py-2.5 pr-10 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
+                  className="w-full px-4 py-2.5 pr-10 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all" />
                 <button type="button" onClick={() => setShow(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
                   {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -58,7 +58,7 @@ export const SetPasswordPage: React.FC = () => {
             </div>
           ))}
           <button type="submit" disabled={loading}
-            className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-sm transition-all disabled:opacity-50 mt-2">
+            className="w-full py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-bold shadow-sm transition-all disabled:opacity-50 mt-2">
             {loading ? 'Setting password...' : 'Set Password'}
           </button>
         </form>

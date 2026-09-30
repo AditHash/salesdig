@@ -8,8 +8,6 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 interface Props {
-  companyName?: string;
-  productName?: string;
   awsFundingEnabled?: boolean;
   onNavigateToLibrary: (term: string) => void;
   loading: boolean;
@@ -34,7 +32,7 @@ const STEPS = [
 ];
 
 export const AnalysisView: React.FC<Props> = ({
-  companyName = 'Workmates', productName = 'Cloud Catalyst', awsFundingEnabled = true,
+  awsFundingEnabled = true,
   onNavigateToLibrary,
   loading, setLoading,
   report, setReport,
@@ -87,13 +85,13 @@ export const AnalysisView: React.FC<Props> = ({
       {/* Input card */}
       {!report && (
         <div className="text-center space-y-6 py-12 max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-indigo-100 shadow-sm">
-            <Sparkles className="w-4 h-4 text-indigo-500" />
-            <span className="text-xs font-bold text-indigo-700 uppercase tracking-wide">{companyName} Sales Intelligence</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-teal-100 shadow-sm">
+            <Sparkles className="w-4 h-4 text-teal-500" />
+            <span className="text-xs font-bold text-teal-700 uppercase tracking-wide">ACCOUNT INTELLIGENCE</span>
           </div>
           <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight">
-            {productName}<br />
-            <span className="text-gradient">Intelligence Brief</span>
+            Company Intelligence<br />
+            <span className="text-gradient">for Sales Teams</span>
           </h1>
           <p className="text-slate-500 text-base leading-relaxed max-w-xl mx-auto">
             Enter a company name and domain. Our AI research pipeline builds an account profile, maps decision makers, identifies relevant services{awsFundingEnabled ? ' and funding programs' : ''}, and prepares a strategic roadmap.
@@ -115,7 +113,7 @@ export const AnalysisView: React.FC<Props> = ({
                   onChange={e => setCustomerName(e.target.value)}
                   required
                   disabled={loading}
-                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 text-slate-900 font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all disabled:opacity-50"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 text-slate-900 font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all disabled:opacity-50"
                 />
               </div>
             </div>
@@ -130,7 +128,7 @@ export const AnalysisView: React.FC<Props> = ({
                   onChange={e => setCompanyDomain(e.target.value)}
                   required
                   disabled={loading}
-                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 text-slate-900 font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all disabled:opacity-50"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 text-slate-900 font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all disabled:opacity-50"
                 />
               </div>
             </div>
@@ -142,7 +140,7 @@ export const AnalysisView: React.FC<Props> = ({
                 </button>
               )}
               <button type="submit" disabled={loading}
-                className="flex items-center gap-2 px-6 py-3 bg-slate-900 hover:bg-indigo-600 text-white text-sm font-bold rounded-xl transition-all shadow-md disabled:opacity-60 disabled:cursor-not-allowed whitespace-nowrap">
+                className="flex items-center gap-2 px-6 py-3 bg-slate-900 hover:bg-teal-600 text-white text-sm font-bold rounded-xl transition-all shadow-md disabled:opacity-60 disabled:cursor-not-allowed whitespace-nowrap">
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
                 {loading ? 'Running…' : 'Run Analysis'}
               </button>
@@ -155,9 +153,9 @@ export const AnalysisView: React.FC<Props> = ({
       {loading && (
         <div className="max-w-2xl mx-auto bg-white rounded-2xl border border-slate-200 p-8 text-center space-y-5">
           <div className="relative w-16 h-16 mx-auto">
-            <div className="absolute inset-0 rounded-full border-4 border-indigo-100" />
-            <div className="absolute inset-0 rounded-full border-4 border-indigo-600 border-t-transparent animate-spin" />
-            <Sparkles className="absolute inset-0 m-auto w-6 h-6 text-indigo-600" />
+            <div className="absolute inset-0 rounded-full border-4 border-teal-100" />
+            <div className="absolute inset-0 rounded-full border-4 border-teal-600 border-t-transparent animate-spin" />
+            <Sparkles className="absolute inset-0 m-auto w-6 h-6 text-teal-600" />
           </div>
           <div>
             <p className="text-sm font-bold text-slate-700 animate-pulse">{STEPS[stepIdx]}</p>
@@ -165,7 +163,7 @@ export const AnalysisView: React.FC<Props> = ({
           </div>
           <div className="flex justify-center gap-1.5">
             {STEPS.map((_, i) => (
-              <div key={i} className={`h-1 rounded-full transition-all duration-500 ${i <= stepIdx ? 'bg-indigo-600 w-6' : 'bg-slate-200 w-3'}`} />
+              <div key={i} className={`h-1 rounded-full transition-all duration-500 ${i <= stepIdx ? 'bg-teal-600 w-6' : 'bg-slate-200 w-3'}`} />
             ))}
           </div>
         </div>

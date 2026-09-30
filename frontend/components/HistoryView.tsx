@@ -38,7 +38,7 @@ export const HistoryView: React.FC = () => {
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[60vh]">
-      <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+      <Loader2 className="w-8 h-8 animate-spin text-teal-500" />
     </div>
   );
 
@@ -48,7 +48,7 @@ export const HistoryView: React.FC = () => {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2">
-            <History className="w-6 h-6 text-indigo-500" /> Analysis History
+            <History className="w-6 h-6 text-teal-500" /> Analysis History
           </h1>
           <p className="text-sm text-slate-500 mt-0.5">{reports.length} saved {reports.length === 1 ? 'report' : 'reports'}</p>
         </div>
@@ -63,7 +63,7 @@ export const HistoryView: React.FC = () => {
             placeholder="Search by company or domain…"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
           />
         </div>
       )}
@@ -77,7 +77,7 @@ export const HistoryView: React.FC = () => {
           <h3 className="text-lg font-bold text-slate-700 mb-1">No history yet</h3>
           <p className="text-slate-400 text-sm mb-6">Run your first analysis to see it here.</p>
           <button onClick={() => navigate('/')}
-            className="px-5 py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-xl hover:bg-indigo-700 transition-all">
+            className="px-5 py-2.5 bg-teal-600 text-white text-sm font-bold rounded-xl hover:bg-teal-700 transition-all">
             Start Analysis
           </button>
         </div>
@@ -103,7 +103,7 @@ export const HistoryView: React.FC = () => {
                   <tr key={r._id} className="hover:bg-slate-50 transition-colors group">
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center text-xs font-black flex-shrink-0">
+                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 text-white flex items-center justify-center text-xs font-black flex-shrink-0">
                           {initials(r.customerName)}
                         </div>
                         <div>
@@ -147,7 +147,7 @@ export const HistoryView: React.FC = () => {
                       <div className="flex items-center gap-2 justify-end">
                         <button
                           onClick={() => navigate(`/history/${r._id}`)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-all">
+                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-teal-600 bg-teal-50 hover:bg-teal-100 rounded-lg transition-all">
                           <ExternalLink className="w-3.5 h-3.5" /> View
                         </button>
                         <button

@@ -6,7 +6,7 @@ const catColor = (cat: string) => {
   const c = cat.toLowerCase();
   if (c.includes('automat')) return 'bg-blue-100 text-blue-700 border-blue-200';
   if (c.includes('security') || c.includes('compliance')) return 'bg-red-100 text-red-700 border-red-200';
-  if (c.includes('data') || c.includes('analytic')) return 'bg-violet-100 text-violet-700 border-violet-200';
+  if (c.includes('data') || c.includes('analytic')) return 'bg-cyan-100 text-cyan-700 border-cyan-200';
   if (c.includes('customer') || c.includes('cx')) return 'bg-pink-100 text-pink-700 border-pink-200';
   if (c.includes('cost') || c.includes('optim')) return 'bg-emerald-100 text-emerald-700 border-emerald-200';
   return 'bg-amber-100 text-amber-700 border-amber-200';

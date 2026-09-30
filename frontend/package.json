@@ -1,7 +1,7 @@
 {
-  "name": "workmates-cloudcatalyst",
+  "name": "salesdig",
   "version": "1.0.0",
-  "description": "AI-driven AWS funding eligibility assistant",
+  "description": "Open-source company research and sales intelligence for account teams",
   "type": "module",
   "scripts": {
     "dev": "vite",

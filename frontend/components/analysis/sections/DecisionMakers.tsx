@@ -9,11 +9,11 @@ const telHref = (value: string) => `tel:${value.replace(/[^+\d]/g, '')}`;
 export const DecisionMakers: React.FC<{ directors: AgentDirector[], companyProfile: AgentCompanyProfile }> = ({ directors, companyProfile }) => (
   <section className="space-y-4">
     <div className="flex items-center gap-2 mb-1">
-      <div className="p-2 bg-violet-50 rounded-lg">
-        <svg className="w-4 h-4 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+      <div className="p-2 bg-cyan-50 rounded-lg">
+        <svg className="w-4 h-4 text-cyan-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
       </div>
       <h2 className="text-lg font-black text-slate-900">Decision Makers</h2>
-      <span className="ml-auto text-xs font-bold px-2.5 py-1 rounded-full bg-violet-100 text-violet-700">{directors.length} verified</span>
+      <span className="ml-auto text-xs font-bold px-2.5 py-1 rounded-full bg-cyan-100 text-cyan-700">{directors.length} verified</span>
     </div>
 
     {(() => {
@@ -30,7 +30,7 @@ export const DecisionMakers: React.FC<{ directors: AgentDirector[], companyProfi
       }
 
       return (
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-4 sm:p-5 mb-4 space-y-4">
+        <div className="bg-gradient-to-r from-blue-50 to-teal-50 border border-blue-100 rounded-2xl p-4 sm:p-5 mb-4 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center gap-3">
             <div className="flex items-center gap-2 text-blue-900">
               <Building2 className="w-5 h-5" />
@@ -41,7 +41,7 @@ export const DecisionMakers: React.FC<{ directors: AgentDirector[], companyProfi
                 href={contactDetails.officialContactPageUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="sm:ml-auto inline-flex items-center gap-1.5 text-xs font-bold text-indigo-700 hover:text-indigo-900"
+                className="sm:ml-auto inline-flex items-center gap-1.5 text-xs font-bold text-teal-700 hover:text-teal-900"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
                 Official contact page
@@ -63,7 +63,7 @@ export const DecisionMakers: React.FC<{ directors: AgentDirector[], companyProfi
                       <p className="mt-1 text-sm text-slate-700 whitespace-pre-line">{address.value}</p>
                     </div>
                     {address.sourceUrl && (
-                      <a href={address.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-[11px] font-bold text-indigo-600 hover:underline flex items-center gap-1">
+                      <a href={address.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-[11px] font-bold text-teal-600 hover:underline flex items-center gap-1">
                         <Globe className="w-3.5 h-3.5" />
                         Source
                       </a>
@@ -87,7 +87,7 @@ export const DecisionMakers: React.FC<{ directors: AgentDirector[], companyProfi
                         {phone.value}
                       </a>
                       {phone.sourceUrl && (
-                        <a href={phone.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-[11px] font-bold text-indigo-600 hover:underline flex items-center gap-1">
+                        <a href={phone.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-[11px] font-bold text-teal-600 hover:underline flex items-center gap-1">
                           <Globe className="w-3.5 h-3.5" />
                           Source
                         </a>
@@ -112,7 +112,7 @@ export const DecisionMakers: React.FC<{ directors: AgentDirector[], companyProfi
                         {email.value}
                       </a>
                       {email.sourceUrl && (
-                        <a href={email.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-[11px] font-bold text-indigo-600 hover:underline flex items-center gap-1">
+                        <a href={email.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-[11px] font-bold text-teal-600 hover:underline flex items-center gap-1">
                           <Globe className="w-3.5 h-3.5" />
                           Source
                         </a>
@@ -146,17 +146,17 @@ export const DecisionMakers: React.FC<{ directors: AgentDirector[], companyProfi
       ? <p className="text-sm text-slate-400 italic">No decision makers could be verified</p>
       : <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {directors.map((dm, i) => (
-          <div key={i} className="bg-white rounded-2xl border border-slate-200 overflow-hidden hover:border-violet-300 hover:shadow-lg transition-all group">
+          <div key={i} className="bg-white rounded-2xl border border-slate-200 overflow-hidden hover:border-cyan-300 hover:shadow-lg transition-all group">
             {/* Header */}
             <div className="p-5 pb-4 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 text-white flex items-center justify-center font-black text-base flex-shrink-0 shadow-md">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-teal-600 text-white flex items-center justify-center font-black text-base flex-shrink-0 shadow-md">
                     {initials(dm.name)}
                   </div>
                   <div>
                     <p className="font-black text-slate-900 leading-tight">{dm.name}</p>
-                    <p className="text-xs font-bold text-violet-600 mt-0.5">{dm.title}</p>
+                    <p className="text-xs font-bold text-cyan-600 mt-0.5">{dm.title}</p>
                     {dm.location && (
                       <p className="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5">
                         <MapPin className="w-3 h-3" />{dm.location}
@@ -174,7 +174,7 @@ export const DecisionMakers: React.FC<{ directors: AgentDirector[], companyProfi
                   )}
                   {dm.sourceUrls?.[0] && (
                     <a href={dm.sourceUrls[0]} target="_blank" rel="noopener noreferrer"
-                      className="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-400 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all" title="Source">
+                      className="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-400 hover:bg-teal-600 hover:text-white hover:border-teal-600 transition-all" title="Source">
                       <Globe className="w-3.5 h-3.5" />
                     </a>
                   )}

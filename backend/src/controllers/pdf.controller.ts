@@ -12,9 +12,9 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const logoPath = path.resolve(__dirname, "../../../frontend/public/logo.webp");
+const logoPath = path.resolve(__dirname, "../../../frontend/public/salesdig-mark.svg");
 const logoBase64 = fs.existsSync(logoPath)
-  ? `data:image/webp;base64,${fs.readFileSync(logoPath).toString("base64")}`
+  ? `data:image/svg+xml;base64,${fs.readFileSync(logoPath).toString("base64")}`
   : "";
 
 const pct   = (n: number) => `${Math.round(n * 100)}%`;
@@ -30,10 +30,12 @@ function buildHtml(report: any, profile: any, directors: any[], logo: string, wo
   const partnerProductRecs: any[] = report.partnerProductRecommendations ?? report.zohoRecommendations ?? [];
 
   /* ── helpers ── */
-  const badge = (t: string, bg = "#4f46e5") =>
+  const brandColor = workspace.primaryColor === "#4f52d3" ? "#0f766e" : workspace.primaryColor;
+  const reportWorkspaceName = workspace.companyName === "Workmates" ? "Salesdig" : workspace.companyName;
+  const badge = (t: string, bg = brandColor) =>
     `<span style="background:${bg};color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;margin-right:4px">${esc(t)}</span>`;
 
-  const section = (num: string, title: string, body: string, color = workspace.primaryColor) =>
+  const section = (num: string, title: string, body: string, color = brandColor) =>
     `<div class="section">
       <div style="height:18px"></div>
       <div class="section-banner" style="background:${color}">${num} · ${esc(title).toUpperCase()}</div>
@@ -50,7 +52,7 @@ function buildHtml(report: any, profile: any, directors: any[], logo: string, wo
   const cover = `
     <div class="cover">
       <!-- left dark panel -->
-      <div style="position:absolute;top:0;left:0;width:52%;height:100%;background:#1e1b4b;z-index:0"></div>
+      <div style="position:absolute;top:0;left:0;width:52%;height:100%;background:#0f172a;z-index:0"></div>
       <!-- right light panel -->
       <div style="position:absolute;top:0;right:0;width:48%;height:100%;background:#f8fafc;z-index:0"></div>
 
@@ -60,13 +62,13 @@ function buildHtml(report: any, profile: any, directors: any[], logo: string, wo
         <div style="width:52%;padding:56px 40px;display:flex;flex-direction:column;justify-content:space-between">
           <div>
             ${logo ? `<img src="${logo}" style="height:36px;margin-bottom:40px;object-fit:contain" />` : `<div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:2px;margin-bottom:40px">${esc(workspace.companyName).toUpperCase()}</div>`}
-            <div style="width:40px;height:3px;background:#6366f1;margin-bottom:20px"></div>
-            <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.4);letter-spacing:2px;margin-bottom:12px">${esc(workspace.productName).toUpperCase()} · INTELLIGENCE BRIEF</div>
+            <div style="width:40px;height:3px;background:#14b8a6;margin-bottom:20px"></div>
+            <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.4);letter-spacing:2px;margin-bottom:12px">SALESDIG · INTELLIGENCE BRIEF</div>
             <h1 style="font-size:32px;color:#fff;font-weight:800;line-height:1.2;margin:0 0 8px">${esc(report.customerName)}</h1>
             <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:24px">${esc(report.companyDomain)}</div>
             <div style="margin-bottom:28px">
-              ${profile.segment    ? badge(profile.segment,    "#4f46e5") : ""}
-              ${profile.industry   ? badge(profile.industry,   "#312e81") : ""}
+              ${profile.segment    ? badge(profile.segment) : ""}
+              ${profile.industry   ? badge(profile.industry,   "#115e59") : ""}
               ${potential ? badge(
                   potential.overall >= 70 ? "⚡ High Potential" :
                   potential.overall >= 40 ? "⚡ Medium Potential" : "⚡ Low Potential",
@@ -88,7 +90,7 @@ function buildHtml(report: any, profile: any, directors: any[], logo: string, wo
               </div>`;
             })()}
           </div>
-          <div style="font-size:10px;color:rgba(255,255,255,.25)">Prepared by ${esc(workspace.companyName)} · Confidential · ${new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"})}</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.25)">Prepared by ${esc(reportWorkspaceName)} · Confidential · ${new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"})}</div>
         </div>
 
         <!-- right -->
@@ -101,16 +103,16 @@ function buildHtml(report: any, profile: any, directors: any[], logo: string, wo
             </div>
             <div style="flex:1;background:#fff;border-radius:12px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
               <div style="font-size:9px;font-weight:700;color:#64748b;letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px">Segment</div>
-              <div style="font-size:22px;font-weight:800;color:#4f46e5">${esc(profile.segment??"—")}</div>
+              <div style="font-size:22px;font-weight:800;color:#0f766e">${esc(profile.segment??"—")}</div>
             </div>
           </div>
           ${potential ? `
-          <!-- workmates potential -->
+          <!-- sales potential -->
           <div style="background:#fff;border-radius:12px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
-            <div style="font-size:9px;font-weight:700;color:#64748b;letter-spacing:.8px;text-transform:uppercase;margin-bottom:10px">${esc(workspace.companyName)} Potential</div>
+            <div style="font-size:9px;font-weight:700;color:#64748b;letter-spacing:.8px;text-transform:uppercase;margin-bottom:10px">Sales Potential</div>
             ${[
               {l:"Cloud Migration", v:potential.cloudMigration, c:"#2563eb"},
-              {l:"GenAI Adoption",  v:potential.genAi,          c:"#7c3aed"},
+              {l:"GenAI Adoption",  v:potential.genAi,          c:"#0891b2"},
               {l:"Modernization",   v:potential.modernization,  c:"#d97706"},
               ...(typeof potential.zoho === "number" ? [{l:"Business App Adoption", v:potential.zoho, c:"#c8102e"}] : []),
             ].map(b=>`
@@ -168,7 +170,7 @@ function buildHtml(report: any, profile: any, directors: any[], logo: string, wo
     ${divider()}
     <div style="display:flex;gap:0;margin-bottom:12px">
       ${[
-        {l:"Segment",      v:profile.segment??    "—", c:"#4f46e5"},
+        {l:"Segment",      v:profile.segment??    "—", c:"#0f766e"},
         {l:"Potential",    v:potential ? (potential.overall >= 70 ? "High" : potential.overall >= 40 ? "Medium" : "Low") : "—", c: potential ? (potential.overall >= 70 ? "#059669" : potential.overall >= 40 ? "#d97706" : "#e11d48") : "#64748b"},
         {l:"AWS Customer", v:profile.isAwsCustomer?"Yes ✓":"No", c:profile.isAwsCustomer?"#059669":"#64748b"},
         {l:"Employees",    v:profile.numberOfEmployees != null ? Number(profile.numberOfEmployees).toLocaleString() : "—", c:"#0284c7"},
@@ -231,7 +233,7 @@ function buildHtml(report: any, profile: any, directors: any[], logo: string, wo
             ${addrs.map((a:any)=>`<div style="font-size:12px;color:#334155;margin:2px 0">${a.label ? `<span style="color:#94a3b8;font-size:10px">${esc(a.label)}: </span>` : ""}${esc(a.value)}</div>`).join("")}
           </div>` : ""}
         </div>
-        ${pageUrl ? `<div style="margin-top:6px;font-size:11px;color:#4f46e5">🔗 ${esc(pageUrl)}</div>` : ""}`;
+        ${pageUrl ? `<div style="margin-top:6px;font-size:11px;color:#0f766e">🔗 ${esc(pageUrl)}</div>` : ""}`;
     })()}
   `);
 
@@ -248,7 +250,7 @@ function buildHtml(report: any, profile: any, directors: any[], logo: string, wo
     directors.map(d=>`
       <div style="margin-bottom:12px">
         <div style="font-size:14px;font-weight:700;color:#1e1b4b">${esc(d.name)}</div>
-        <div style="font-size:12px;font-weight:700;color:#4f46e5">${esc(d.title)}</div>
+        <div style="font-size:12px;font-weight:700;color:#0f766e">${esc(d.title)}</div>
         ${d.location ? `<div style="font-size:11px;color:#64748b">📍 ${esc(d.location)}</div>` : ""}
         ${d.background ? `<p style="font-size:12px;color:#334155;line-height:1.6">${esc(d.background)}</p>` : ""}
         ${(d.interestAreas??[]).length ? `${label("Key Interests")}<div style="font-size:12px;font-weight:700;color:#d97706">${(d.interestAreas as string[]).join(" · ")}</div>` : ""}
@@ -267,13 +269,13 @@ function buildHtml(report: any, profile: any, directors: any[], logo: string, wo
           <div style="margin:8px 0 4px">
             ${(g.domainAdvantages as any[]).map((d:any)=>`
               <div style="display:flex;gap:8px;margin-bottom:5px;font-size:12px">
-                <span style="font-weight:700;color:#4f46e5;min-width:130px;font-size:10px;text-transform:uppercase;letter-spacing:.5px;padding-top:1px">${esc(d.domain)}</span>
+                <span style="font-weight:700;color:#0f766e;min-width:130px;font-size:10px;text-transform:uppercase;letter-spacing:.5px;padding-top:1px">${esc(d.domain)}</span>
                 <span style="color:#334155;line-height:1.5">${esc(d.advantage)}</span>
               </div>`).join("")}
           </div>` : ""}
         ${label("Pain Point")}<div style="font-size:12px;color:#e11d48">${esc(g.customerGap)}</div>
         ${label("Innovation Fix")}<div style="font-size:12px;font-weight:700;color:#0f172a">${esc(g.proposedInnovation)}</div>
-        <div style="font-size:11px;font-weight:700;color:#4f46e5">Deploy: ${esc(g.workmatesService)}</div>
+        <div style="font-size:11px;font-weight:700;color:#0f766e">Deploy: ${esc(g.workmatesService)}</div>
         ${label("Business Value")}<div style="font-size:12px;font-weight:700;color:#059669">${esc(g.valueProposition)}</div>
         ${divider()}
       </div>
@@ -302,7 +304,7 @@ function buildHtml(report: any, profile: any, directors: any[], logo: string, wo
   const resolutionsHtml = resolutions.length ? section("05","Strategic Resolutions",
     resolutions.map(r=>`
       <div style="margin-bottom:12px">
-        <div style="font-size:11px;font-weight:700;color:#4f46e5">${esc(r.workmatesService)}</div>
+        <div style="font-size:11px;font-weight:700;color:#0f766e">${esc(r.workmatesService)}</div>
         <div style="font-size:13px;font-weight:700;color:#1e1b4b">${esc(r.painPoint)}</div>
         <p style="font-size:12px;color:#334155;line-height:1.6">${esc(r.solutionStrategy)}</p>
         <div style="font-size:12px;font-weight:700;color:#059669">↑ ${esc(r.businessImpact)}</div>
@@ -315,7 +317,7 @@ function buildHtml(report: any, profile: any, directors: any[], logo: string, wo
   const roadmapHtml = roadmap.length ? section("06","Cloud Adoption Timeline",
     roadmap.map((phase: any, i: number)=>`
       <div style="margin-bottom:14px">
-        <div style="font-size:10px;font-weight:700;color:#4f46e5;letter-spacing:.6px">
+        <div style="font-size:10px;font-weight:700;color:#0f766e;letter-spacing:.6px">
           PHASE ${String(i+1).padStart(2,"0")} · ${esc(phase.duration)} · ${esc(phase.focusArea)}
         </div>
         <div style="font-size:14px;font-weight:700;color:#1e1b4b">${esc(phase.phaseName)}</div>
@@ -340,8 +342,8 @@ function buildHtml(report: any, profile: any, directors: any[], logo: string, wo
     `).join("")
   ) : "";
 
-  /* ── 09 workmates potential ── */
-  const potentialHtml = potential ? section("08",`${workspace.companyName} Potential`, `
+  /* ── 09 sales potential ── */
+  const potentialHtml = potential ? section("08","Sales Potential", `
     <div style="display:flex;align-items:center;gap:24px;margin-bottom:14px">
       <div style="text-align:center">
         <div style="font-size:36px;font-weight:700;color:#059669">${potential.overall}</div>
@@ -352,7 +354,7 @@ function buildHtml(report: any, profile: any, directors: any[], logo: string, wo
     </div>
     ${[
       {l:"Cloud Migration", v:potential.cloudMigration, c:"#2563eb"},
-      {l:"GenAI Adoption",  v:potential.genAi,          c:"#7c3aed"},
+      {l:"GenAI Adoption",  v:potential.genAi,          c:"#0891b2"},
       {l:"Modernization",   v:potential.modernization,  c:"#d97706"},
       ...(typeof potential.zoho === "number" ? [{l:"Business App Adoption", v:potential.zoho, c:"#c8102e"}] : []),
     ].map(b=>`
@@ -441,7 +443,8 @@ export const generateReportPdf = async (req: AuthRequest, res: Response) => {
     const directors: any[] = report.validatedProfile?.verifiedDirectors ?? [];
 
     const workspace = await getWorkspaceSettings(req.workspaceId!) || DEFAULT_WORKSPACE_SETTINGS;
-    const workspaceLogo = workspace.companyName === "Workmates" ? logoBase64 : "";
+    const workspaceLabel = workspace.companyName === "Workmates" ? "Salesdig" : workspace.companyName;
+    const workspaceLogo = logoBase64;
     const html = buildHtml(report, profile, directors, workspaceLogo, workspace);
 
     const browser = await puppeteer.launch({
@@ -464,7 +467,7 @@ export const generateReportPdf = async (req: AuthRequest, res: Response) => {
       headerTemplate: `<span></span>`,
       footerTemplate: `
         <div style="width:100%;padding:0 40px 8px;display:flex;justify-content:space-between;align-items:center;font-family:Helvetica,Arial,sans-serif">
-          <span style="font-size:9px;color:#94a3b8">${esc(workspace.companyName)} · Confidential</span>
+          <span style="font-size:9px;color:#94a3b8">${esc(workspaceLabel)} · Confidential</span>
           ${workspaceLogo ? `<img src="${workspaceLogo}" style="height:18px;object-fit:contain;position:absolute;left:50%;transform:translateX(-50%)" />` : ""}
           <span style="font-size:9px;color:#94a3b8"><span class="pageNumber"></span> of <span class="totalPages"></span></span>
         </div>`,
@@ -473,7 +476,7 @@ export const generateReportPdf = async (req: AuthRequest, res: Response) => {
     await browser.close();
 
     res.setHeader("Content-Type", "application/pdf");
-    const filename = `${String(report.customerName).replace(/[^a-z0-9_-]+/gi, "-")}-${String(workspace.productName).replace(/[^a-z0-9_-]+/gi, "-")}.pdf`;
+    const filename = `${String(report.customerName).replace(/[^a-z0-9_-]+/gi, "-")}-Salesdig-Report.pdf`;
     res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
     logActivity(req.userId!, "DOWNLOAD_REPORT", `/history/${req.params.reportId}`, `${report.customerName} | ${report.companyDomain}`);
     res.send(pdf);

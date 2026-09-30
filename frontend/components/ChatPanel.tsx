@@ -3,6 +3,7 @@ import { X, Send, Loader2, Sparkles } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { ChatMessage, ChatUsedReport } from '../types';
 import { sendMessage, getChatHistory, clearChatHistory } from '../services/chat.service';
+import { BrandMark } from './SalesdigBrand';
 
 const SUGGESTIONS = [
   'Which company has the best GenAI opportunity?',
@@ -10,12 +11,12 @@ const SUGGESTIONS = [
   'Who are the key decision makers?',
 ];
 
-export const ChatPanel: React.FC<{ companyName?: string; primaryColor?: string }> = ({ companyName = 'Workmates', primaryColor = '#4f52d3' }) => {
+export const ChatPanel: React.FC<{ primaryColor?: string }> = ({ primaryColor = '#0f766e' }) => {
   const welcome = useMemo<ChatMessage>(() => ({
     role: 'assistant',
-    content: `👋 Hi! I'm your **${companyName} Analyst**.\n\nI can answer questions grounded in your saved company research, including technology, opportunities, decision makers, and recommendations.\n\nWhat would you like to know?`,
+    content: `👋 Hi! I'm your **Salesdig research assistant**.\n\nI can answer questions grounded in your saved company research, including technology, opportunities, decision makers, and recommendations.\n\nWhat would you like to know?`,
     createdAt: new Date().toISOString()
-  }), [companyName]);
+  }), []);
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
@@ -147,16 +148,16 @@ export const ChatPanel: React.FC<{ companyName?: string; primaryColor?: string }
       >
         {open ? (
           <div className="w-14 h-14 rounded-full shadow-xl flex items-center justify-center border-2 border-white"
-            style={{ background: 'linear-gradient(135deg, #4f52d3, #7c3aed)' }}>
+            style={{ background: 'linear-gradient(135deg, #0f766e, #0891b2)' }}>
             <X className="w-5 h-5 text-white" />
           </div>
         ) : (
           <>
-            <div className="w-16 h-16 rounded-full shadow-xl flex items-center justify-center bg-white border-2 border-[#e0e2f8]">
-              <span className="text-4xl">👩‍💼</span>
+            <div className="w-16 h-16 rounded-full shadow-xl flex items-center justify-center bg-white border-2 border-teal-100">
+              <BrandMark className="h-12 w-12" />
             </div>
-            <span className="text-[11px] font-bold text-[#4f52d3] bg-white px-2 py-0.5 rounded-full shadow border border-[#e0e2f8] whitespace-nowrap">
-              Ask me
+            <span className="text-[11px] font-bold text-teal-800 bg-white px-2 py-0.5 rounded-full shadow border border-teal-100 whitespace-nowrap">
+              Ask Salesdig
             </span>
           </>
         )}
@@ -171,13 +172,13 @@ export const ChatPanel: React.FC<{ companyName?: string; primaryColor?: string }
           {/* Header */}
           <div
             className="flex items-center gap-3 px-4 py-3 text-white flex-shrink-0"
-            style={{ background: `linear-gradient(135deg, ${primaryColor} 0%, #7c3aed 100%)` }}
+            style={{ background: `linear-gradient(135deg, ${primaryColor} 0%, #0891b2 100%)` }}
           >
             <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0 overflow-hidden">
-              <span className="text-sm font-black text-white">{companyName.charAt(0).toUpperCase()}</span>
+              <BrandMark className="h-7 w-7" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-sm leading-tight">{companyName} Analyst</p>
+              <p className="font-semibold text-sm leading-tight">Salesdig Research Assistant</p>
               <p className="text-xs opacity-70 leading-tight">Ask me about your companies</p>
             </div>
             <button
@@ -212,9 +213,9 @@ export const ChatPanel: React.FC<{ companyName?: string; primaryColor?: string }
                     {m.role === 'assistant' && (
                       <div
                         className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 overflow-hidden"
-                        style={{ background: 'linear-gradient(135deg, #4f52d3, #7c3aed)' }}
+                        style={{ background: 'linear-gradient(135deg, #0f766e, #0891b2)' }}
                       >
-                        <img src="/logo-small.webp" alt="" className="w-5 h-5 object-contain" />
+                        <BrandMark className="w-5 h-5" />
                       </div>
                     )}
                     <div
@@ -223,7 +224,7 @@ export const ChatPanel: React.FC<{ companyName?: string; primaryColor?: string }
                           ? 'text-white rounded-br-sm shadow-sm'
                           : 'bg-white text-slate-700 rounded-bl-sm shadow-sm border border-slate-100'
                       }`}
-                      style={m.role === 'user' ? { background: 'linear-gradient(135deg, #4f52d3, #7c3aed)' } : {}}
+                      style={m.role === 'user' ? { background: 'linear-gradient(135deg, #0f766e, #0891b2)' } : {}}
                     >
                       {m.role === 'user' ? m.content : (
                         <ReactMarkdown
@@ -251,7 +252,7 @@ export const ChatPanel: React.FC<{ companyName?: string; primaryColor?: string }
                       <button
                         key={s}
                         onClick={() => handleSend(s)}
-                        className="text-left text-xs px-3 py-2 rounded-xl border border-[#c7c9f0] text-[#4f52d3] bg-white hover:bg-[#eef0ff] transition-colors"
+                        className="text-left text-xs px-3 py-2 rounded-xl border border-[#c7c9f0] text-[#0f766e] bg-white hover:bg-[#eef0ff] transition-colors"
                       >
                         {s}
                       </button>
@@ -263,7 +264,7 @@ export const ChatPanel: React.FC<{ companyName?: string; primaryColor?: string }
                   <div className="flex gap-2 justify-start">
                     <div
                       className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden"
-                      style={{ background: 'linear-gradient(135deg, #4f52d3, #7c3aed)' }}
+                      style={{ background: 'linear-gradient(135deg, #0f766e, #0891b2)' }}
                     >
                       <Sparkles className="w-3.5 h-3.5 text-white" />
                     </div>
@@ -290,13 +291,13 @@ export const ChatPanel: React.FC<{ companyName?: string; primaryColor?: string }
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSend()}
               placeholder="Ask about your companies..."
-              className="flex-1 text-sm bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 outline-none focus:border-[#4f52d3] focus:bg-white transition-all"
+              className="flex-1 text-sm bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 outline-none focus:border-[#0f766e] focus:bg-white transition-all"
             />
             <button
               onClick={() => handleSend()}
               disabled={!input.trim() || loading}
               className="w-9 h-9 rounded-xl flex items-center justify-center text-white disabled:opacity-40 transition-all hover:scale-105 flex-shrink-0"
-              style={{ background: 'linear-gradient(135deg, #4f52d3, #7c3aed)' }}
+              style={{ background: 'linear-gradient(135deg, #0f766e, #0891b2)' }}
             >
               <Send className="w-4 h-4" />
             </button>

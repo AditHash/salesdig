@@ -14,7 +14,7 @@ const Bar: React.FC<{ label: string; value: number; color: string }> = ({ label,
   </div>
 );
 
-export const WorkmatesPotential: React.FC<{ potential: AgentSalesPotential }> = ({ potential }) => (
+export const SalesPotential: React.FC<{ potential: AgentSalesPotential }> = ({ potential }) => (
   <section className="space-y-4">
     <div className="flex items-center gap-2 mb-1">
       <div className="p-2 bg-emerald-50 rounded-lg"><Target className="w-4 h-4 text-emerald-600" /></div>
@@ -31,7 +31,7 @@ export const WorkmatesPotential: React.FC<{ potential: AgentSalesPotential }> = 
       </div>
       <div className="space-y-3">
         <Bar label="Cloud Migration" value={potential.cloudMigration} color="text-blue-600" />
-        <Bar label="GenAI Adoption" value={potential.genAi} color="text-violet-600" />
+        <Bar label="GenAI Adoption" value={potential.genAi} color="text-cyan-600" />
         <Bar label="Modernization" value={potential.modernization} color="text-amber-500" />
         {typeof (potential.partnerProducts ?? potential.zoho) === 'number' && (
           <Bar label="Partner Product Fit" value={(potential.partnerProducts ?? potential.zoho)!} color="text-rose-600" />

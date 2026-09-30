@@ -89,8 +89,8 @@ export const ZohoProducts: React.FC<Props> = ({ recommendations }) => {
                 {rec.useCase && (
                   <div className="bg-slate-50 rounded-xl p-3.5 border border-slate-100 mb-3">
                     <div className="flex items-center gap-1.5 mb-1">
-                      <Zap className="w-3 h-3 text-indigo-500" />
-                      <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">
+                      <Zap className="w-3 h-3 text-teal-500" />
+                      <span className="text-[10px] font-bold text-teal-600 uppercase tracking-wider">
                         Use Case
                       </span>
                     </div>

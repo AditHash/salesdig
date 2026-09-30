@@ -58,7 +58,7 @@ const LoginView = () => {
                 />
 
                 <button
-                    className="w-full bg-indigo-600 text-white py-2 rounded-lg font-bold hover:bg-indigo-700"
+                    className="w-full bg-teal-600 text-white py-2 rounded-lg font-bold hover:bg-teal-700"
                 >
                     Login
                 </button>

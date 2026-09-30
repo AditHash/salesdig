@@ -66,10 +66,10 @@ export const FundingPrograms: React.FC<Props> = ({ recommendations, onNavigateTo
                     </div>
                     <p className="text-sm font-semibold text-slate-800">{rec.customerValue}</p>
                   </div>
-                  <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-3.5">
+                  <div className="bg-teal-50 border border-teal-100 rounded-xl p-3.5">
                     <div className="flex items-center gap-1.5 mb-1.5">
-                      <Briefcase className="w-3.5 h-3.5 text-indigo-600" />
-                      <span className="text-[11px] font-bold text-indigo-700 uppercase tracking-widest">Partner Incentive</span>
+                      <Briefcase className="w-3.5 h-3.5 text-teal-600" />
+                      <span className="text-[11px] font-bold text-teal-700 uppercase tracking-widest">Partner Incentive</span>
                     </div>
                     <p className="text-sm font-semibold text-slate-800">{rec.partnerValue}</p>
                   </div>
@@ -79,7 +79,7 @@ export const FundingPrograms: React.FC<Props> = ({ recommendations, onNavigateTo
                 <div className="flex items-center gap-3 flex-wrap">
                   <button
                     onClick={() => setExpanded(expanded === i ? null : i)}
-                    className="flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-indigo-600 transition-colors"
+                    className="flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-teal-600 transition-colors"
                   >
                     <Mail className="w-3.5 h-3.5" />
                     {expanded === i ? 'Hide' : 'Show'} Draft Email
@@ -89,7 +89,7 @@ export const FundingPrograms: React.FC<Props> = ({ recommendations, onNavigateTo
                   {onNavigateToLibrary && LIBRARY_IDS.has(rec.programId) && (
                     <button
                       onClick={() => onNavigateToLibrary(rec.programName)}
-                      className="ml-auto flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-slate-900 hover:bg-indigo-600 rounded-lg transition-all shadow-sm"
+                      className="ml-auto flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-slate-900 hover:bg-teal-600 rounded-lg transition-all shadow-sm"
                     >
                       Full Program Details <ArrowRight className="w-3.5 h-3.5" />
                     </button>
@@ -101,7 +101,7 @@ export const FundingPrograms: React.FC<Props> = ({ recommendations, onNavigateTo
                   <div className="mt-3 bg-slate-50 border border-slate-200 rounded-xl overflow-hidden">
                     <div className="flex items-center justify-between px-4 py-2.5 bg-white border-b border-slate-100">
                       <div className="flex items-center gap-2">
-                        <Mail className="w-3.5 h-3.5 text-indigo-500" />
+                        <Mail className="w-3.5 h-3.5 text-teal-500" />
                         <span className="text-xs font-bold text-slate-700">AI-Generated Outreach</span>
                       </div>
                       <button onClick={() => copy(rec, i)}

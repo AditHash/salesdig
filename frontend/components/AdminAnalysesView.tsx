@@ -50,11 +50,11 @@ export const AdminAnalysesView: React.FC = () => {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
-            <FileText className="w-6 h-6 text-indigo-500" /> All Analyses
+            <FileText className="w-6 h-6 text-teal-500" /> All Analyses
           </h1>
           <p className="text-sm text-slate-500 mt-0.5">{total} total reports across all users</p>
         </div>
-        <button onClick={fetchReports} className="p-2.5 rounded-xl border border-slate-200 bg-white text-slate-500 hover:text-indigo-600 transition-all">
+        <button onClick={fetchReports} className="p-2.5 rounded-xl border border-slate-200 bg-white text-slate-500 hover:text-teal-600 transition-all">
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
         </button>
       </div>
@@ -67,7 +67,7 @@ export const AdminAnalysesView: React.FC = () => {
           placeholder="Search company name or domain…"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
         />
       </div>
 
@@ -113,7 +113,7 @@ export const AdminAnalysesView: React.FC = () => {
                   </td>
                   <td className="px-5 py-4 text-right">
                     <button onClick={() => navigate(`/history/${r._id}`)}
-                      className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all">
+                      className="p-1.5 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-all">
                       <ExternalLink className="w-4 h-4" />
                     </button>
                   </td>
@@ -132,12 +132,12 @@ export const AdminAnalysesView: React.FC = () => {
           </p>
           <div className="flex items-center gap-2">
             <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-              className="px-4 py-2 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-600 hover:border-indigo-300 hover:text-indigo-600 disabled:opacity-40 transition-all">
+              className="px-4 py-2 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-600 hover:border-teal-300 hover:text-teal-600 disabled:opacity-40 transition-all">
               ← Prev
             </button>
             <span className="text-sm font-bold text-slate-600">{page} / {totalPages}</span>
             <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-              className="px-4 py-2 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-600 hover:border-indigo-300 hover:text-indigo-600 disabled:opacity-40 transition-all">
+              className="px-4 py-2 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-600 hover:border-teal-300 hover:text-teal-600 disabled:opacity-40 transition-all">
               Next →
             </button>
           </div>
