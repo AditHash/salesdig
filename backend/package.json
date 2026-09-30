@@ -8,7 +8,6 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc && cp -r src/assets dist/assets",
     "start": "node dist/server.js",
-    "migrate:legacy-export": "tsx src/scripts/import-mongo-export.ts",
     "backfill:embeddings": "tsx src/scripts/backfill-embeddings.ts"
   },
   "keywords": [

@@ -2,28 +2,21 @@
 
 Updated: 2026-09-30
 
-## Completed in this change
+## Completed
 
-- Replaced Mongoose persistence with PostgreSQL queries for users, reports, analysis runs, chat sessions/messages, and activity.
-- Added PostgreSQL tables, indexes, JSONB report/run payloads, and workspace/user foreign keys. Workspace settings and pgvector embeddings remain in PostgreSQL.
-- Removed the Mongoose dependency and all runtime `MONGO_URI` requirements.
-- Added a JSON export importer for legacy MongoDB collections and a PostgreSQL embedding backfill command.
-- Added `backend/.env.example` and updated system/database docs for the PostgreSQL-only runtime.
+- PostgreSQL stores users, reports, analysis runs, chat sessions/messages, activity, workspaces, and report embeddings.
+- pgvector replaces Pinecone for report retrieval.
+- Mongoose, MongoDB runtime configuration, and the legacy Mongo import tool are removed. There is no MongoDB data to migrate.
+- Workmates remains the default workspace configuration; new companies can create isolated workspaces and customize their settings.
+- `backend/.env.example` lists the current environment variables.
 
-## Current runtime requirements
+## Run the app
 
-Set `DATABASE_URL`, `JWT_SECRET`, and `GEMINI_API_KEY`. PostgreSQL must provide pgvector and allow the startup role to create the extension and application schema. Set `PGSSLMODE=require` when the hosted database requires TLS. Email variables are optional for invitation and password reset flows. There is no runtime MongoDB or Pinecone dependency.
+1. Provision PostgreSQL with pgvector available and create a database.
+2. Set `DATABASE_URL`, `JWT_SECRET`, and `GEMINI_API_KEY` in `backend/.env`. Set `PGSSLMODE=require` if the host requires TLS. Email variables are optional.
+3. Run `cd backend && npm install && npm run dev`. Startup creates the application tables and Workmates default workspace.
+4. Run the frontend separately and set `VITE_BACKEND_URL` to the backend URL.
 
-## Before switching an existing deployment
+## Validation
 
-1. Back up MongoDB and export `users`, `analysisruns`, `analysisreports`, `chatsessions`, and `footprints` as Extended JSON arrays.
-2. Export workspace rows from the current PostgreSQL database to `workspaces.json` so custom IDs and settings are preserved.
-3. Point `DATABASE_URL` to the destination PostgreSQL database and run `LEGACY_MONGO_EXPORT_DIR=/secure/path npm run migrate:legacy-export` from `backend/`.
-4. Run `npm run backfill:embeddings`, then compare source/destination counts and inspect representative accounts, reports, chat histories, and activity.
-5. Exercise signup/login, admin invites and blocking, analysis, report regeneration/deletion/PDF, chat retrieval, and workspace isolation before cutover. Keep the backup until validation passes.
-
-The importer preserves record IDs and is safe to rerun for the same exports. Chat messages are imported only when the destination chat session has no messages. Run the migration during a maintenance window to avoid concurrent writes.
-
-## Validation status
-
-Frontend and backend production builds pass. No live PostgreSQL instance or legacy data export was available in this workspace, so runtime SQL, import behavior, and application flows still need environment-backed verification before cutover.
+Frontend and backend production builds pass. A live PostgreSQL instance was not available in the implementation environment, so verify startup and core flows against the configured database before deployment. Use `npm run backfill:embeddings` only if existing PostgreSQL reports need their vectors rebuilt.
