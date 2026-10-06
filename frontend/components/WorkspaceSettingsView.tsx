@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Building2, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
 import API from '../api/api';
+import { SellerCompanyProfileForm } from './SellerCompanyProfileForm';
 
 export interface WorkspaceSettings {
   companyName: string;
@@ -58,7 +59,15 @@ export const WorkspaceSettingsView: React.FC<{ onSaved: (settings: WorkspaceSett
   };
 
   if (loading) return <div className="p-8 text-sm text-slate-500">Loading company settings…</div>;
-  if (!settings) return <div className="p-8 text-sm text-red-600">Company settings are unavailable.</div>;
+  if (!settings) return (
+    <div className="mx-auto max-w-4xl space-y-6 p-6 pb-20 md:p-8">
+      <SellerCompanyProfileForm onSaved={() => undefined} />
+      <div className="rounded-2xl border border-red-200 bg-white p-5 text-sm text-red-700" role="alert">
+        Other company settings are unavailable. Reload this page to retry.
+        <button type="button" className="ml-3 font-bold underline" onClick={() => window.location.reload()}>Retry</button>
+      </div>
+    </div>
+  );
 
   const textField = (label: string, key: 'companyName' | 'tagline' | 'companyDescription', multiline = false) => (
     <label className="block">
@@ -74,7 +83,7 @@ export const WorkspaceSettingsView: React.FC<{ onSaved: (settings: WorkspaceSett
   );
 
   return (
-    <form onSubmit={save} className="mx-auto max-w-4xl space-y-6 p-6 pb-20 md:p-8">
+    <div className="mx-auto max-w-4xl space-y-6 p-6 pb-20 md:p-8">
       <header>
         <h1 className="flex items-center gap-2 text-2xl font-extrabold text-slate-900">
           <Building2 className="h-6 w-6 text-teal-500" /> Company Settings
@@ -82,10 +91,13 @@ export const WorkspaceSettingsView: React.FC<{ onSaved: (settings: WorkspaceSett
         <p className="mt-1 text-sm text-slate-500">Customize your workspace identity and the sales context used for research.</p>
       </header>
 
+      <SellerCompanyProfileForm onSaved={profile => {
+        setSettings(current => current ? { ...current, companyName: profile.companyName, companyDescription: profile.companyDescription } : current);
+        onSaved({ ...settings, companyName: profile.companyName, companyDescription: profile.companyDescription });
+      }} />
+      <form onSubmit={save} className="space-y-6">
       <section className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:grid-cols-2">
-        {textField('Company name', 'companyName')}
         {textField('Tagline', 'tagline')}
-        {textField('Company description for AI research', 'companyDescription', true)}
         <div className="rounded-xl border border-teal-100 bg-teal-50/70 p-4">
           <p className="text-xs font-bold uppercase tracking-wide text-teal-800">Product</p>
           <p className="mt-1 text-sm font-semibold text-slate-900">Salesdig</p>
@@ -136,6 +148,7 @@ export const WorkspaceSettingsView: React.FC<{ onSaved: (settings: WorkspaceSett
       <button disabled={saving} type="submit" className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-teal-700 disabled:opacity-50">
         <Save className="h-4 w-4" /> {saving ? 'Saving…' : 'Save company settings'}
       </button>
-    </form>
+      </form>
+    </div>
   );
 };

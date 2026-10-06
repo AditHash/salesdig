@@ -4,11 +4,13 @@ Salesdig is an open-source company research and sales intelligence app. The fron
 
 ## Requirements
 
-- Node.js 18 or newer
+- Node.js 20 or newer (required by the Gemini SDK)
 - PostgreSQL with pgvector installed
 - Gemini API key for research, recommendations, embeddings, and chat
 
 Create the database before starting the backend. The backend enables the `vector` extension and creates application tables on startup. Set a strong `JWT_SECRET` and valid `GEMINI_API_KEY` in `backend/.env`.
+
+For Neon, use its PostgreSQL connection string as `DATABASE_URL` and ensure the role can enable pgvector. Keep Neon credentials in `backend/.env`; the app does not need the Neon CLI, object storage, or deployment command. Schema migration `backend/migrations/001_workspace_seller_profile.sql` runs automatically on backend startup. Back up the database before applying it to a shared environment. Existing Workmates and other workspace rows keep their names, descriptions, users, reports, and V1 access; their new profile starts as `not_started`.
 
 ## First-time setup
 
@@ -58,6 +60,19 @@ cd backend
 npm run build
 npm start
 ```
+
+## Seller company profile and checks
+
+Workspace admins can open **Company Settings** to save a seller profile draft, complete onboarding, and edit it later. Members can read the profile through `GET /api/workspace/current/company-profile`; admins can update it with `PATCH` and the current `version`. Completion requires a company name, website, and description. Industries, ideal customer profile, and differentiators are optional. Profile completion does not gate V1 research, reports, or chat.
+
+Run builds from each package directory with `npm run build`. Backend integration tests use a disposable PostgreSQL database with pgvector. The name must end in `_test`; never point this command at Neon production:
+
+```bash
+cd backend
+TEST_DATABASE_URL='postgresql://test_user@localhost:5432/salesdig_test' npm test
+```
+
+The test suite creates and removes its own workspace and report fixtures.
 
 ## WSL with Windows PostgreSQL
 

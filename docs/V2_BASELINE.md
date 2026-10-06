@@ -1,0 +1,9 @@
+# V2 baseline and Seller Company Profile
+
+The current app is React/Vite and Express/TypeScript. PostgreSQL holds users, workspaces, analysis runs, reports, chat, activity, and pgvector embeddings. `backend/src/config/postgres.ts` creates the V1 schema at startup; `backend/migrations/` adds tracked, additive migrations. Research runs synchronously. There is no background job, upload pipeline, or progress transport. Workmates is seeded as a regular workspace with default settings.
+
+Authentication loads the user and workspace from PostgreSQL for each request. The only current roles are `admin` and `user`; V2 Seller Company Profile edits map to `admin`, while members can read. Future Owner, Sales Manager, Sales Rep, and Viewer roles remain for later milestones. Profile data extends `workspaces`; name and description stay in existing `settings` JSONB for V1 compatibility. No legacy report or run is linked to a new target account. Existing report ownership and workspace filters remain in place, including report export and chat retrieval; no affected workspace leak was demonstrated in the baseline review.
+
+Baseline commands: `cd backend && npm run build`, `cd frontend && npm run build`. There was no test or lint script before V2. `cd backend && TEST_DATABASE_URL=... npm test` now runs the HTTP authorization and profile integration checks. A dedicated database ending `_test` with pgvector is required. Tests create and remove their own fixtures. The test database must stay isolated from shared Neon data.
+
+The migration preserves existing workspace settings and reports. New profile columns start empty with `not_started` status and version `0`. Company name, website, and description are required only when marking onboarding complete. Existing V1 features stay accessible during onboarding. A profile edit increments `profile_version`; an existing V1 company-settings edit also increments it when name or description changes.

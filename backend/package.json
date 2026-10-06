@@ -8,6 +8,7 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc && cp -r src/assets dist/assets",
     "start": "node dist/server.js",
+    "test": "tsx --test test/*.test.ts",
     "backfill:embeddings": "tsx src/scripts/backfill-embeddings.ts"
   },
   "keywords": [

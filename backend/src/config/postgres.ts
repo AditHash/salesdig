@@ -1,5 +1,6 @@
 import pg from "pg";
 import { DEFAULT_WORKSPACE_ID, DEFAULT_WORKSPACE_SETTINGS, WorkspaceSettings } from "./workspaceDefaults.js";
+import { applyMigrations } from "./migrations.js";
 
 const { Pool } = pg;
 
@@ -142,6 +143,7 @@ export const initializePostgres = async (): Promise<void> => {
      ON CONFLICT (id) DO NOTHING`,
     [DEFAULT_WORKSPACE_ID, JSON.stringify(DEFAULT_WORKSPACE_SETTINGS)]
   );
+  await applyMigrations(postgres);
 };
 
 export const getWorkspaceSettings = async (workspaceId: string): Promise<WorkspaceSettings | null> => {
@@ -171,7 +173,16 @@ export const saveWorkspaceSettings = async (
 ): Promise<WorkspaceSettings | null> => {
   const result = await postgres.query<{ settings: WorkspaceSettings }>(
     `UPDATE workspaces
-     SET settings = $2::jsonb, updated_at = now()
+     SET settings = $2::jsonb,
+         profile_version = profile_version + CASE WHEN
+           (settings->>'companyName') IS DISTINCT FROM ($2::jsonb->>'companyName') OR
+           (settings->>'companyDescription') IS DISTINCT FROM ($2::jsonb->>'companyDescription')
+         THEN 1 ELSE 0 END,
+         profile_updated_at = CASE WHEN
+           (settings->>'companyName') IS DISTINCT FROM ($2::jsonb->>'companyName') OR
+           (settings->>'companyDescription') IS DISTINCT FROM ($2::jsonb->>'companyDescription')
+         THEN now() ELSE profile_updated_at END,
+         updated_at = now()
      WHERE id = $1
      RETURNING settings`,
     [workspaceId, JSON.stringify(settings)]
