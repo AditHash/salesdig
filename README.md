@@ -74,6 +74,10 @@ TEST_DATABASE_URL='postgresql://test_user@localhost:5432/salesdig_test' npm test
 
 The test suite creates and removes its own workspace and report fixtures.
 
+## Seller catalog
+
+Company Settings includes workspace-owned offerings, partners, and case studies. Admins create, edit, approve, archive, and restore items; members have read-only API access under `/api/seller`. Offerings record type, capabilities, business outcomes, industries, and ideal customers. Case studies can link to an offering in the same workspace. Entries are labelled `seller_supplied` until a later reviewed document workflow provides evidence. Each change keeps a version snapshot, and only approved, active offerings are eligible for opportunity matching. The additive catalog migration runs on backend startup after the profile migration.
+
 ## WSL with Windows PostgreSQL
 
 When Node runs in WSL and PostgreSQL runs on Windows, `localhost` in `DATABASE_URL` points to WSL. Set its host to the Windows host address shown by `ip route` (the default route). When opening a WSL-hosted frontend from Windows, start Vite with `npm run dev -- --host 0.0.0.0`, then open the WSL IP shown by `hostname -I`. Set `VITE_BACKEND_URL` and `FRONTEND_URL` to matching reachable addresses. WSL addresses can change after a restart.

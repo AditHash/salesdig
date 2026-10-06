@@ -1,6 +1,6 @@
 # Salesdig V2 implementation plan
 
-Status: Step 0 and Step 1.1 implemented locally; later milestones remain planned.
+Status: Step 0 and Steps 1.1–1.2 implemented locally; Step 1.3 and later milestones remain planned.
 
 ## Goal and working agreement
 
@@ -74,10 +74,10 @@ Use at least two workspaces and distinct users in authorization fixtures. Verify
 
 **How:** add workspace-scoped offerings with name, type, description, business outcomes, technical capabilities, relevant industries, ideal customer profile, review status, and active/archived status. Implement CRUD and an offerings screen.
 
-- [ ] Add partner records and case studies, with relevant offering links where useful.
-- [ ] Preserve differentiators, credentials, and case-study results as seller-supplied or document-backed claims.
-- [ ] Use archive/version behavior so historical opportunities can still identify the offering they referenced.
-- [ ] Keep hypothetical/draft offerings out of approved capability matching.
+- [x] Add partner records and case studies, with relevant offering links where useful.
+- [x] Preserve differentiators, credentials, and case-study results as seller-supplied or document-backed claims.
+- [x] Use archive/version behavior so historical opportunities can still identify the offering they referenced.
+- [x] Keep hypothetical/draft offerings out of approved capability matching.
 
 ### 1.3 Deliver document ingestion and reviewed extraction
 
@@ -333,3 +333,5 @@ When a slice is completed, add a dated entry identifying the code revision if av
 **2026-10-06 — Step 0 and Step 1.1:** Added `001_workspace_seller_profile.sql`, versioned workspace profile APIs, and an editable Company Settings form. Backend/frontend builds passed. Backend HTTP tests passed against isolated local PostgreSQL with pgvector (two workspaces, role checks, forged workspace claim, incomplete legacy-profile report access). Applied the additive migration to an isolated database containing a pre-migration V1 workspace, run, and report; all persisted. No Neon/production migration or paid Gemini call was made. Initial revision: `1259685`.
 
 **2026-10-06 — verification follow-up:** Added preference-only saves to prevent stale Company Settings tabs from replacing profile fields. Six backend tests passed against isolated local PostgreSQL, covering login, profile/API authorization, V1 settings, report history/detail/run, PDF generation, chat history, and invalid or unauthenticated research requests with no new run. Both builds passed. Repeated migration initialization preserved the V1 fixture and one migration record. A Chromium walkthrough passed profile validation, completion, and reload persistence. Full paid Gemini research and chat answers remain unverified; Neon/production was not touched.
+
+**2026-10-06 — Step 1.2:** Added `002_seller_catalog.sql`, workspace-scoped offerings, partners, linked case studies, admin review, archive/restore, and version snapshots. Approved-offering query filters drafts and archived rows before matching. Backend integration tests on isolated local PostgreSQL cover two workspaces, forged workspace claims, cross-tenant case-study links, role checks, approval, archive, and history. Frontend/backend builds passed. Chromium walkthrough created an approved offering, partner, and linked approved case study. No production database was modified. Document ingestion and later milestones remain pending.
