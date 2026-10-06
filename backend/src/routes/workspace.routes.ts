@@ -5,6 +5,7 @@ import { patchCompanyProfile, readCompanyProfile } from "../controllers/companyP
 import {
   getCurrentWorkspace,
   getWorkspaceBranding,
+  patchCurrentWorkspacePreferences,
   registerWorkspace,
   updateCurrentWorkspace
 } from "../controllers/workspace.controller.js";
@@ -15,6 +16,7 @@ router.post("/register", registerWorkspace);
 router.get("/branding/:slug", getWorkspaceBranding);
 router.get("/current", isAuth, getCurrentWorkspace);
 router.put("/current", isAuth, isAdmin, updateCurrentWorkspace);
+router.patch("/current/preferences", isAuth, isAdmin, patchCurrentWorkspacePreferences);
 router.get("/current/company-profile", isAuth, readCompanyProfile);
 router.patch("/current/company-profile", isAuth, isAdmin, patchCompanyProfile);
 

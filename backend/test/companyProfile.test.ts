@@ -3,6 +3,7 @@ import { after, before, test } from "node:test";
 import { randomUUID } from "node:crypto";
 import type { Server } from "node:http";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
 
 const databaseUrl = process.env.TEST_DATABASE_URL;
 if (!databaseUrl || !new URL(databaseUrl).pathname.endsWith("_test")) {
@@ -49,10 +50,12 @@ before(async () => {
     await postgres.query("INSERT INTO users (id, name, email, role, workspace_id) VALUES ($1, $2, $3, $4, $5)",
       [id, "Fixture User", `${id}@example.test`, role, workspaceId]);
   }
+  await postgres.query("UPDATE users SET password = $2 WHERE id = $1", [adminA, await bcrypt.hash("fixture-password", 10)]);
   await postgres.query("INSERT INTO workspaces (id, slug, settings) VALUES ($1, $2, $3::jsonb)",
     [legacyWorkspace, `legacy-profile-test-${legacyWorkspace}`, JSON.stringify({ ...DEFAULT_WORKSPACE_SETTINGS, companyName: "Legacy Seller", companyDescription: "Existing V1 context" })]);
   await postgres.query("INSERT INTO users (id, name, email, role, workspace_id) VALUES ($1, 'Legacy User', $2, 'admin', $3)",
     [legacyUser, `${legacyUser}@example.test`, legacyWorkspace]);
+  await postgres.query("UPDATE users SET password = $2 WHERE id = $1", [legacyUser, await bcrypt.hash("legacy-password", 10)]);
   await postgres.query(
     `INSERT INTO analysis_runs (id, user_id, workspace_id, status, input, started_at, report_id)
      VALUES ($1, $2, $3, 'completed', '{}'::jsonb, now(), $4)`, [legacyRun, legacyUser, legacyWorkspace, legacyReport]);
@@ -61,6 +64,10 @@ before(async () => {
       annual_spend, validated_profile, overall_confidence)
      VALUES ($1, $2, $3, $4, 'Fixture Target', 'fixture.example', 0, '{}'::jsonb, 0)`,
     [legacyReport, legacyUser, legacyWorkspace, legacyRun]);
+  await postgres.query("INSERT INTO chat_sessions (id, user_id, workspace_id) VALUES ($1, $2, $3)",
+    [`session-${legacyUser}`, legacyUser, legacyWorkspace]);
+  await postgres.query("INSERT INTO chat_messages (session_id, role, content) VALUES ($1, 'user', 'Legacy question')",
+    [`session-${legacyUser}`]);
   server = app.listen(0);
   await new Promise<void>(resolve => server.once("listening", resolve));
   const address = server.address();
@@ -84,6 +91,7 @@ test("profile access is based on database membership and admin role", async () =
   assert.equal(b.status, 200);
   assert.equal(b.data.companyName, "Beta Seller");
   assert.equal((await request("/workspace/current/company-profile", memberA, "PATCH", { version: 0, companyName: "Unauthorized" })).status, 403);
+  assert.equal((await request("/workspace/current/company-profile", adminA)).data.companyName, "Alpha Seller");
 });
 
 test("draft, completion, validation, concurrency, and V1 settings stay compatible", async () => {
@@ -111,6 +119,17 @@ test("draft, completion, validation, concurrency, and V1 settings stay compatibl
   const afterLegacySave = await request("/workspace/current/company-profile", adminA);
   assert.equal(afterLegacySave.data.version, 4);
   assert.equal(afterLegacySave.data.companyName, "Alpha via V1 settings");
+  const preferences = await request("/workspace/current/preferences", adminA, "PATCH", { tagline: "New tagline" });
+  assert.equal(preferences.status, 200);
+  assert.equal(preferences.data.companyName, "Alpha via V1 settings");
+  assert.equal(preferences.data.tagline, "New tagline");
+  assert.equal((await request("/workspace/current/preferences", adminA, "PATCH", { companyName: "Forbidden field" })).status, 400);
+  assert.equal((await request("/workspace/current/preferences", adminA, "PATCH", { primaryColor: "invalid" })).status, 400);
+  assert.equal((await request("/workspace/current/preferences", memberA, "PATCH", { tagline: "Forbidden" })).status, 403);
+  const bPreferences = await request("/workspace/current/preferences", adminB, "PATCH", { tagline: "Beta tagline" }, workspaceA);
+  assert.equal(bPreferences.status, 200);
+  assert.equal(bPreferences.data.companyName, "Beta Seller");
+  assert.equal((await request("/workspace/current", adminA)).data.tagline, "New tagline");
   const b = await request("/workspace/current/company-profile", adminB);
   assert.equal(b.data.version, 0);
   assert.equal(b.data.companyName, "Beta Seller");
@@ -126,6 +145,53 @@ test("legacy report remains accessible while seller profile is incomplete", asyn
   assert.equal(report.data.id, legacyReport);
   const outside = await request(`/analysis/v2/report/${legacyReport}`, adminB);
   assert.equal(outside.status, 404);
+});
+
+test("V1 login, report history, run, chat history, and export access survive profile migration", async () => {
+  const login = await request("/auth/login", undefined, "POST", { email: `${adminA}@example.test`, password: "fixture-password" });
+  assert.equal(login.status, 200);
+  assert.equal(login.data.user.workspaceId, workspaceA);
+  assert.equal((await request("/auth/me", adminA)).status, 200);
+
+  const legacyLogin = await request("/auth/login", undefined, "POST", { email: `${legacyUser}@example.test`, password: "legacy-password" });
+  assert.equal(legacyLogin.status, 200);
+  const legacyProfileResponse = await fetch(`${base}/workspace/current/company-profile`, {
+    headers: { Authorization: `Bearer ${legacyLogin.data.token}` }
+  });
+  assert.equal(legacyProfileResponse.status, 200);
+  assert.equal((await legacyProfileResponse.json()).onboardingStatus, "not_started");
+
+  const reports = await request("/analysis/v2/reports", legacyUser);
+  assert.equal(reports.status, 200);
+  assert.ok(reports.data.some((report: { id: string }) => report.id === legacyReport));
+  const run = await request(`/analysis/v2/run/${legacyRun}`, legacyUser);
+  assert.equal(run.status, 200);
+  assert.equal(run.data.reportId, legacyReport);
+  assert.equal((await request(`/analysis/v2/run/${legacyRun}`, adminB)).status, 404);
+  assert.equal((await request(`/analysis/v2/report/${legacyReport}/pdf`, adminB)).status, 404);
+
+  const history = await request("/chat/history", legacyUser);
+  assert.equal(history.status, 200);
+  assert.equal(history.data.messages[0].content, "Legacy question");
+  const otherHistory = await request("/chat/history", adminB);
+  assert.equal(otherHistory.status, 200);
+  assert.deepEqual(otherHistory.data.messages, []);
+
+  const exportResponse = await fetch(`${base}/analysis/v2/report/${legacyReport}/pdf`, {
+    headers: { Authorization: `Bearer ${legacyLogin.data.token}` }
+  });
+  assert.equal(exportResponse.status, 200);
+  assert.match(exportResponse.headers.get("content-type") ?? "", /application\/pdf/);
+  const pdfHeader = new Uint8Array(await exportResponse.arrayBuffer()).slice(0, 4);
+  assert.equal(new TextDecoder().decode(pdfHeader), "%PDF");
+});
+
+test("invalid and unauthenticated research requests create no run", async () => {
+  const before = await postgres.query<{ count: string }>("SELECT count(*) FROM analysis_runs WHERE workspace_id = $1", [workspaceA]);
+  assert.equal((await request("/analysis/v2/run", memberA, "POST", {})).status, 400);
+  assert.equal((await request("/analysis/v2/run", randomUUID(), "POST", { customerName: "Fixture", companyDomain: "fixture.example" })).status, 401);
+  const after = await postgres.query<{ count: string }>("SELECT count(*) FROM analysis_runs WHERE workspace_id = $1", [workspaceA]);
+  assert.equal(after.rows[0].count, before.rows[0].count);
 });
 
 test("blocked users cannot read a profile", async () => {

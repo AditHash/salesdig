@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 import { AuthRequest } from "../middlewares/isAuth.js";
 import { getWorkspaceSettings, getWorkspaceSettingsBySlug, postgres, saveWorkspaceSettings } from "../config/postgres.js";
 import { DEFAULT_WORKSPACE_SETTINGS, parseWorkspaceSettings } from "../config/workspaceDefaults.js";
+import { updateWorkspacePreferences, WorkspacePreferencesValidationError } from "../services/workspacePreferences.service.js";
 
 export const registerWorkspace = async (req: Request, res: Response) => {
   const companyName = typeof req.body?.companyName === "string" ? req.body.companyName.trim() : "";
@@ -85,6 +86,20 @@ export const updateCurrentWorkspace = async (req: AuthRequest, res: Response) =>
     }
     console.error("Workspace settings update failed", error);
     return res.status(500).json({ message: "Failed to update workspace settings" });
+  }
+};
+
+export const patchCurrentWorkspacePreferences = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.workspaceId) return res.status(401).json({ message: "Workspace context is missing" });
+    const saved = await updateWorkspacePreferences(req.workspaceId, req.body);
+    return saved ? res.json(saved) : res.status(404).json({ message: "Workspace not found" });
+  } catch (error) {
+    if (error instanceof WorkspacePreferencesValidationError) {
+      return res.status(400).json({ message: error.message });
+    }
+    console.error("Workspace preferences update failed", error);
+    return res.status(500).json({ message: "Failed to update company settings" });
   }
 };
 

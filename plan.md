@@ -39,7 +39,7 @@ Ship a usable slice at a time. Within a milestone, prefer one complete database 
 
 - [x] Run the available frontend/backend build and type checks.
 - [x] Use an isolated PostgreSQL database to verify relevant V1 migrations and representative persisted flows.
-- [ ] Capture representative V1 API responses and user journeys to guide compatibility checks.
+- [x] Capture representative V1 API responses and user journeys to guide compatibility checks.
 - [x] Review server-side workspace membership and ownership checks, vector retrieval filters, caches, exports, chat, and progress access.
 - [x] Add targeted isolation coverage and fix demonstrated defects before extending affected paths.
 
@@ -330,4 +330,6 @@ Do not implement the remaining milestones or deploy in this task.
 
 When a slice is completed, add a dated entry identifying the code revision if available, migration names, checks actually executed, results, and any unresolved limitation. Update task status only from observed implementation and verification evidence.
 
-**2026-10-06 — Step 0 and Step 1.1:** Added `001_workspace_seller_profile.sql`, versioned workspace profile APIs, and an editable Company Settings form. Backend/frontend builds passed. Backend HTTP tests passed against isolated local PostgreSQL with pgvector (two workspaces, role checks, forged workspace claim, incomplete legacy-profile report access). Applied the additive migration to an isolated database containing a pre-migration V1 workspace, run, and report; all persisted. No Neon/production migration, Gemini research call, browser walkthrough, or full V1 export/chat journey was executed. Revision: this task's local commit.
+**2026-10-06 — Step 0 and Step 1.1:** Added `001_workspace_seller_profile.sql`, versioned workspace profile APIs, and an editable Company Settings form. Backend/frontend builds passed. Backend HTTP tests passed against isolated local PostgreSQL with pgvector (two workspaces, role checks, forged workspace claim, incomplete legacy-profile report access). Applied the additive migration to an isolated database containing a pre-migration V1 workspace, run, and report; all persisted. No Neon/production migration or paid Gemini call was made. Initial revision: `1259685`.
+
+**2026-10-06 — verification follow-up:** Added preference-only saves to prevent stale Company Settings tabs from replacing profile fields. Six backend tests passed against isolated local PostgreSQL, covering login, profile/API authorization, V1 settings, report history/detail/run, PDF generation, chat history, and invalid or unauthenticated research requests with no new run. Both builds passed. Repeated migration initialization preserved the V1 fixture and one migration record. A Chromium walkthrough passed profile validation, completion, and reload persistence. Full paid Gemini research and chat answers remain unverified; Neon/production was not touched.

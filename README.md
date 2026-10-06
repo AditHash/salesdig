@@ -63,9 +63,9 @@ npm start
 
 ## Seller company profile and checks
 
-Workspace admins can open **Company Settings** to save a seller profile draft, complete onboarding, and edit it later. Members can read the profile through `GET /api/workspace/current/company-profile`; admins can update it with `PATCH` and the current `version`. Completion requires a company name, website, and description. Industries, ideal customer profile, and differentiators are optional. Profile completion does not gate V1 research, reports, or chat.
+Workspace admins can open **Company Settings** to save a seller profile draft, complete onboarding, and edit it later. Members can read the profile through `GET /api/workspace/current/company-profile`; admins can update it with `PATCH` and the current `version`. The other Company Settings fields save through `PATCH /api/workspace/current/preferences`, so a stale settings tab cannot overwrite a newer profile name or description. Completion requires a company name, website, and description. Industries, ideal customer profile, and differentiators are optional. Profile completion does not gate V1 research, reports, or chat.
 
-Run builds from each package directory with `npm run build`. Backend integration tests use a disposable PostgreSQL database with pgvector. The name must end in `_test`; never point this command at Neon production:
+Run builds from each package directory with `npm run build`. Backend integration tests use a disposable PostgreSQL database with pgvector and Puppeteer's installed Chromium for the PDF check. The database name must end in `_test`; never point this command at Neon production:
 
 ```bash
 cd backend

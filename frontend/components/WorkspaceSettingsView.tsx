@@ -46,7 +46,15 @@ export const WorkspaceSettingsView: React.FC<{ onSaved: (settings: WorkspaceSett
     if (!settings) return;
     setSaving(true);
     try {
-      const { data } = await API.put<WorkspaceSettings>('/workspace/current', applySalesdigDefaults(settings));
+      const { data } = await API.patch<WorkspaceSettings>('/workspace/current/preferences', {
+        tagline: settings.tagline,
+        primaryColor: settings.primaryColor,
+        accentColor: settings.accentColor,
+        primaryCloudProvider: settings.primaryCloudProvider,
+        salesServices: settings.salesServices,
+        partnerProducts: settings.partnerProducts,
+        enabledRecommendations: settings.enabledRecommendations,
+      });
       const brandedSettings = applySalesdigDefaults(data);
       setSettings(brandedSettings);
       onSaved(brandedSettings);
@@ -69,19 +77,6 @@ export const WorkspaceSettingsView: React.FC<{ onSaved: (settings: WorkspaceSett
     </div>
   );
 
-  const textField = (label: string, key: 'companyName' | 'tagline' | 'companyDescription', multiline = false) => (
-    <label className="block">
-      <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500">{label}</span>
-      {multiline ? (
-        <textarea rows={3} value={settings[key]} onChange={event => update(key, event.target.value)}
-          className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-100" />
-      ) : (
-        <input value={settings[key]} onChange={event => update(key, event.target.value)}
-          className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-100" />
-      )}
-    </label>
-  );
-
   return (
     <div className="mx-auto max-w-4xl space-y-6 p-6 pb-20 md:p-8">
       <header>
@@ -97,7 +92,11 @@ export const WorkspaceSettingsView: React.FC<{ onSaved: (settings: WorkspaceSett
       }} />
       <form onSubmit={save} className="space-y-6">
       <section className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:grid-cols-2">
-        {textField('Tagline', 'tagline')}
+        <label className="block">
+          <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500">Tagline</span>
+          <input value={settings.tagline} onChange={event => update('tagline', event.target.value)}
+            className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-100" />
+        </label>
         <div className="rounded-xl border border-teal-100 bg-teal-50/70 p-4">
           <p className="text-xs font-bold uppercase tracking-wide text-teal-800">Product</p>
           <p className="mt-1 text-sm font-semibold text-slate-900">Salesdig</p>
