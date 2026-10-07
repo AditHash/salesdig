@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import type { PoolClient } from "pg";
 import { postgres } from "../config/postgres.js";
 import { mapDbRow, mapDbRows } from "../utils/dbRows.js";
 
@@ -97,13 +98,15 @@ const validate = (kind: CatalogKind, value: unknown, isUpdate: boolean): Record<
   return result;
 };
 
+export const validateCatalogInput = (kind: CatalogKind, value: unknown) => validate(kind, value, false);
+
 const snapshot = (row: Record<string, unknown>) => {
   const mapped = mapDbRow<Record<string, unknown>>(row)!;
   delete mapped._id;
   return JSON.stringify(mapped);
 };
 
-const insertVersion = async (client: { query: typeof postgres.query }, kind: CatalogKind, workspaceId: string, row: Record<string, unknown>, actorId: string) => {
+const insertVersion = async (client: PoolClient, kind: CatalogKind, workspaceId: string, row: Record<string, unknown>, actorId: string) => {
   if (kind === "offerings") {
     await client.query(
       "INSERT INTO seller_offering_versions (workspace_id, offering_id, version, snapshot, changed_by) VALUES ($1, $2, $3, $4::jsonb, $5)",
@@ -117,7 +120,7 @@ const insertVersion = async (client: { query: typeof postgres.query }, kind: Cat
   }
 };
 
-const validateOfferingLink = async (client: { query: typeof postgres.query }, workspaceId: string, offeringId: unknown) => {
+const validateOfferingLink = async (client: PoolClient, workspaceId: string, offeringId: unknown) => {
   if (!offeringId) return;
   const linked = await client.query("SELECT 1 FROM seller_offerings WHERE id = $1 AND workspace_id = $2", [offeringId, workspaceId]);
   if (!linked.rowCount) throw new CatalogValidationError("offeringId must refer to an offering in this workspace");
@@ -166,28 +169,62 @@ export const getCatalogVersions = async (kind: CatalogKind, workspaceId: string,
   return mapDbRows(result.rows);
 };
 
-export const createCatalogItem = async (kind: CatalogKind, workspaceId: string, actorId: string, input: unknown) => {
+export const createCatalogItemInTransaction = async (
+  client: PoolClient, kind: CatalogKind, workspaceId: string, actorId: string, input: unknown,
+  sourceKind: "seller_supplied" | "document_backed" = "seller_supplied"
+) => {
   const parsed = validate(kind, input, false);
   const values: Record<string, unknown> = { ...defaults[kind], ...parsed, reviewStatus: parsed.reviewStatus ?? "draft" };
   validateApproval(kind, values);
   const fields = definitions[kind].fields;
-  const columns = ["id", "workspace_id", ...fields.map(field => field.column), "review_status", "created_by"];
-  const parameters = [crypto.randomUUID(), workspaceId, ...fields.map(field => values[field.key]), values.reviewStatus, actorId];
+  const columns = ["id", "workspace_id", ...fields.map(field => field.column), "review_status", "source_kind", "created_by"];
+  const parameters = [crypto.randomUUID(), workspaceId, ...fields.map(field => values[field.key]), values.reviewStatus, sourceKind, actorId];
+  if (kind === "case-studies") await validateOfferingLink(client, workspaceId, values.offeringId);
+  const inserted = await client.query(
+    `INSERT INTO ${definitions[kind].table} (${columns.join(", ")}) VALUES (${parameters.map((_, index) => `$${index + 1}`).join(", ")}) RETURNING *`, parameters
+  );
+  await insertVersion(client, kind, workspaceId, inserted.rows[0], actorId);
+  return mapDbRow(inserted.rows[0]);
+};
+
+export const createCatalogItem = async (
+  kind: CatalogKind, workspaceId: string, actorId: string, input: unknown,
+  sourceKind: "seller_supplied" | "document_backed" = "seller_supplied"
+) => {
   const client = await postgres.connect();
   try {
     await client.query("BEGIN");
-    if (kind === "case-studies") await validateOfferingLink(client, workspaceId, values.offeringId);
-    const inserted = await client.query(
-      `INSERT INTO ${definitions[kind].table} (${columns.join(", ")}) VALUES (${parameters.map((_, index) => `$${index + 1}`).join(", ")}) RETURNING *`, parameters
-    );
-    await insertVersion(client, kind, workspaceId, inserted.rows[0], actorId);
+    const item = await createCatalogItemInTransaction(client, kind, workspaceId, actorId, input, sourceKind);
     await client.query("COMMIT");
-    return mapDbRow(inserted.rows[0]);
+    return item;
   } catch (error) {
     await client.query("ROLLBACK").catch(() => undefined);
     throw error;
   } finally {
     client.release();
+  }
+};
+
+export const retireDocumentBackedCatalogItems = async (
+  client: PoolClient, workspaceId: string, documentId: string, actorId: string
+) => {
+  const accepted = await client.query<{ item_kind: string; accepted_item_id: string }>(
+    `SELECT DISTINCT item_kind, accepted_item_id FROM seller_document_suggestions
+     WHERE workspace_id = $1 AND document_id = $2 AND status = 'accepted' AND accepted_item_id IS NOT NULL`,
+    [workspaceId, documentId]
+  );
+  const kindBySuggestion: Record<string, CatalogKind> = {
+    offering: "offerings", partner: "partners", case_study: "case-studies"
+  };
+  for (const entry of accepted.rows) {
+    const kind = kindBySuggestion[entry.item_kind];
+    const result = await client.query(
+      `UPDATE ${definitions[kind].table} SET review_status = 'draft', archived_at = COALESCE(archived_at, now()),
+       version = version + 1, updated_at = now()
+       WHERE workspace_id = $1 AND id = $2 AND source_kind = 'document_backed' AND archived_at IS NULL RETURNING *`,
+      [workspaceId, entry.accepted_item_id]
+    );
+    if (result.rows[0]) await insertVersion(client, kind, workspaceId, result.rows[0], actorId);
   }
 };
 
@@ -205,14 +242,16 @@ export const updateCatalogItem = async (kind: CatalogKind, workspaceId: string, 
     if (kind === "case-studies") await validateOfferingLink(client, workspaceId, next.offeringId);
     const fields = definitions[kind].fields;
     const values = fields.map(field => next[field.key]);
+    const contentChanged = fields.some(field => JSON.stringify(existing[field.key]) !== JSON.stringify(next[field.key]));
     const assignments = fields.map((field, index) => `${field.column} = $${index + 3}`);
     const statusParameter = values.length + 3;
     const archivedParameter = values.length + 4;
     const updated = await client.query(
       `UPDATE ${definitions[kind].table} SET ${assignments.join(", ")}, review_status = $${statusParameter},
+       source_kind = CASE WHEN $${archivedParameter + 1}::boolean THEN 'seller_supplied' ELSE source_kind END,
        archived_at = CASE WHEN $${archivedParameter}::boolean THEN COALESCE(archived_at, now()) ELSE NULL END,
        version = version + 1, updated_at = now() WHERE id = $1 AND workspace_id = $2 RETURNING *`,
-      [id, workspaceId, ...values, next.reviewStatus, next.archived ?? Boolean(existing.archivedAt)]
+      [id, workspaceId, ...values, next.reviewStatus, next.archived ?? Boolean(existing.archivedAt), contentChanged]
     );
     await insertVersion(client, kind, workspaceId, updated.rows[0], actorId);
     await client.query("COMMIT");

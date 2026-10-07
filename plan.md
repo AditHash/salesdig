@@ -1,6 +1,6 @@
 # Salesdig V2 implementation plan
 
-Status: Step 0 and Steps 1.1–1.2 implemented locally; Step 1.3 and later milestones remain planned.
+Status: Step 0 and Steps 1.1–1.3 implemented locally; Steps 2–6 remain planned.
 
 ## Goal and working agreement
 
@@ -85,12 +85,12 @@ Use at least two workspaces and distinct users in authorization fixtures. Verify
 
 **How:** use existing storage/extraction clients where suitable. Process documents through explicit ingestion states, keep chunks linked to document versions, and store extraction results as suggestions.
 
-- [ ] Choose an initial supported-format set based on existing parsers; show it in the UI.
-- [ ] Validate file type/size and authorize upload/download paths.
-- [ ] Implement upload, ingestion status, retry, and deletion/update behavior.
-- [ ] Have the model return validated structured suggestions with document provenance.
-- [ ] Let an authorized user accept, edit, or reject suggestions before they become approved seller data.
-- [ ] Ensure replaced/deleted documents cannot leave stale chunks available to retrieval.
+- [x] Choose an initial supported-format set based on existing parsers; show it in the UI.
+- [x] Validate file type/size and authorize upload/download paths.
+- [x] Implement upload, ingestion status, retry, and deletion/update behavior.
+- [x] Have the model return validated structured suggestions with document provenance.
+- [x] Let an authorized user accept, edit, or reject suggestions before they become approved seller data.
+- [x] Ensure replaced/deleted documents cannot leave stale chunks available to retrieval.
 
 **Acceptance criteria:** two workspaces can independently manage seller data; an authorized user can finish onboarding, add offerings and a case study, upload a supported document, and review suggestions. Cross-workspace access fails. Existing V1 research remains usable.
 
@@ -335,3 +335,5 @@ When a slice is completed, add a dated entry identifying the code revision if av
 **2026-10-06 — verification follow-up:** Added preference-only saves to prevent stale Company Settings tabs from replacing profile fields. Six backend tests passed against isolated local PostgreSQL, covering login, profile/API authorization, V1 settings, report history/detail/run, PDF generation, chat history, and invalid or unauthenticated research requests with no new run. Both builds passed. Repeated migration initialization preserved the V1 fixture and one migration record. A Chromium walkthrough passed profile validation, completion, and reload persistence. Full paid Gemini research and chat answers remain unverified; Neon/production was not touched.
 
 **2026-10-06 — Step 1.2:** Added `002_seller_catalog.sql`, workspace-scoped offerings, partners, linked case studies, admin review, archive/restore, and version snapshots. Approved-offering query filters drafts and archived rows before matching. Backend integration tests on isolated local PostgreSQL cover two workspaces, forged workspace claims, cross-tenant case-study links, role checks, approval, archive, and history. Frontend/backend builds passed. Chromium walkthrough created an approved offering, partner, and linked approved case study. No production database was modified. Document ingestion and later milestones remain pending.
+
+**2026-10-07 — Step 1.3:** Added `003_seller_documents.sql`, bounded UTF-8 text/Markdown upload, versioned PostgreSQL storage and pgvector chunks, queued extraction worker, validated excerpt-backed suggestions, and admin review into draft catalog entries. Replacement/deletion removes chunks and retires unchanged document-backed catalog entries. Both builds and 11 backend tests passed against an isolated local PostgreSQL database, including two-workspace authorization, invalid evidence, retry, replacement, and deletion. A Chromium walkthrough passed upload → process → review → accept as draft. Gemini extraction and Neon production migration were not exercised; tests used mock providers and no production data was changed.

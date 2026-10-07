@@ -10,7 +10,7 @@ Salesdig is an open-source company research and sales intelligence app. The fron
 
 Create the database before starting the backend. The backend enables the `vector` extension and creates application tables on startup. Set a strong `JWT_SECRET` and valid `GEMINI_API_KEY` in `backend/.env`.
 
-For Neon, use its PostgreSQL connection string as `DATABASE_URL` and ensure the role can enable pgvector. Keep Neon credentials in `backend/.env`; the app does not need the Neon CLI, object storage, or deployment command. Schema migration `backend/migrations/001_workspace_seller_profile.sql` runs automatically on backend startup. Back up the database before applying it to a shared environment. Existing Workmates and other workspace rows keep their names, descriptions, users, reports, and V1 access; their new profile starts as `not_started`.
+For Neon, use its PostgreSQL connection string as `DATABASE_URL` and ensure the role can enable pgvector. Keep Neon credentials in `backend/.env`; the app does not need the Neon CLI, object storage, or deployment command. Additive migrations in `backend/migrations/` run automatically on backend startup. Back up the database before applying them to a shared environment. Existing Workmates and other workspace rows keep their names, descriptions, users, reports, and V1 access; their new profile starts as `not_started`.
 
 ## First-time setup
 
@@ -76,7 +76,13 @@ The test suite creates and removes its own workspace and report fixtures.
 
 ## Seller catalog
 
-Company Settings includes workspace-owned offerings, partners, and case studies. Admins create, edit, approve, archive, and restore items; members have read-only API access under `/api/seller`. Offerings record type, capabilities, business outcomes, industries, and ideal customers. Case studies can link to an offering in the same workspace. Entries are labelled `seller_supplied` until a later reviewed document workflow provides evidence. Each change keeps a version snapshot, and only approved, active offerings are eligible for opportunity matching. The additive catalog migration runs on backend startup after the profile migration.
+Company Settings includes workspace-owned offerings, partners, and case studies. Admins create, edit, approve, archive, and restore items; members have read-only API access under `/api/seller`. Offerings record type, capabilities, business outcomes, industries, and ideal customers. Case studies can link to an offering in the same workspace. Each change keeps a version snapshot, and only approved, active offerings are eligible for opportunity matching. The additive catalog migration runs on backend startup after the profile migration.
+
+## Seller documents
+
+Workspace admins can upload UTF-8 `.txt` or `.md` files up to 20 KB in Company Settings. Files and versioned text are stored in PostgreSQL; no object storage is required. The backend worker starts with the API, extracts suggestions with Gemini, and stores pgvector chunks linked to the current document version. Admins review, edit, or reject suggestions. Accepted suggestions create draft catalog entries; approval is a separate catalog action. Replacing or deleting a document removes its chunks and retires unchanged document-backed entries. Members can read and download documents in their own workspace.
+
+The worker retries interrupted processing up to three attempts and marks failures for manual retry in Company Settings. It needs `GEMINI_API_KEY` for extraction and embeddings. `SELLER_EXTRACTION_MODEL` optionally overrides its default extraction model. Migration `003_seller_documents.sql` runs on backend startup after the catalog migration. Run `npm run build` and `TEST_DATABASE_URL='postgresql://test_user@localhost:5432/salesdig_test' npm test` before using a shared database; the test URL must end in `_test`.
 
 ## WSL with Windows PostgreSQL
 

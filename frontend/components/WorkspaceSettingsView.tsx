@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import API from '../api/api';
 import { SellerCompanyProfileForm } from './SellerCompanyProfileForm';
 import { SellerCatalogView } from './SellerCatalogView';
+import { SellerDocumentsView } from './SellerDocumentsView';
 
 export interface WorkspaceSettings {
   companyName: string;
@@ -92,6 +93,7 @@ export const WorkspaceSettingsView: React.FC<{ onSaved: (settings: WorkspaceSett
         onSaved({ ...settings, companyName: profile.companyName, companyDescription: profile.companyDescription });
       }} />
       <SellerCatalogView />
+      <SellerDocumentsView />
       <form onSubmit={save} className="space-y-6">
       <section className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:grid-cols-2">
         <label className="block">
