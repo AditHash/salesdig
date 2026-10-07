@@ -1,6 +1,6 @@
 # Salesdig V2 implementation plan
 
-Status: Step 0 and Steps 1.1–1.3 implemented locally; Steps 2–6 remain planned.
+Status: Step 0 and Steps 1–2 implemented locally; Steps 3–6 remain planned.
 
 ## Goal and working agreement
 
@@ -102,19 +102,19 @@ Use at least two workspaces and distinct users in authorization fixtures. Verify
 
 **How:** add or extend the target-account entity. Normalize domains, preserve user-entered display values, and document duplicate handling. Do not silently merge distinct companies merely because they share a parent domain.
 
-- [ ] Add validated account create/read/update/archive APIs and paginated listing.
-- [ ] Add account list, create form, and account overview shell.
-- [ ] Validate any assigned owner is an eligible member of the same workspace.
-- [ ] Define duplicate research submission behavior separately from duplicate account behavior.
+- [x] Add validated account create/read/update/archive APIs and paginated listing.
+- [x] Add account list, create form, and account overview shell.
+- [x] Validate any assigned owner is an eligible member of the same workspace.
+- [x] Define duplicate research submission behavior separately from duplicate account behavior.
 
 ### 2.2 Connect V1 research and reports
 
 **How:** add optional account references to suitable existing runs/reports or use an association table if safer. Launch existing research from an account through an adapter, and display its history there.
 
-- [ ] Keep existing research endpoints and historical report viewing compatible.
-- [ ] Offer explicit linking of legacy reports where identity and ownership are known.
-- [ ] Do not automatically backfill ambiguous company matches or unowned records.
-- [ ] Keep archived accounts' historical reports available under the chosen retention rules.
+- [x] Keep existing research endpoints and historical report viewing compatible.
+- [x] Offer explicit linking of legacy reports where identity and ownership are known.
+- [x] Do not automatically backfill ambiguous company matches or unowned records.
+- [x] Keep archived accounts' historical reports available under the chosen retention rules.
 
 **Acceptance criteria:** a rep can create a prospect, run the existing research flow from it, and see its reports. Workspace boundaries hold for list/detail/mutation paths. A pre-V2 report still opens.
 
@@ -337,3 +337,5 @@ When a slice is completed, add a dated entry identifying the code revision if av
 **2026-10-06 — Step 1.2:** Added `002_seller_catalog.sql`, workspace-scoped offerings, partners, linked case studies, admin review, archive/restore, and version snapshots. Approved-offering query filters drafts and archived rows before matching. Backend integration tests on isolated local PostgreSQL cover two workspaces, forged workspace claims, cross-tenant case-study links, role checks, approval, archive, and history. Frontend/backend builds passed. Chromium walkthrough created an approved offering, partner, and linked approved case study. No production database was modified. Document ingestion and later milestones remain pending.
 
 **2026-10-07 — Step 1.3:** Added `003_seller_documents.sql`, bounded UTF-8 text/Markdown upload, versioned PostgreSQL storage and pgvector chunks, queued extraction worker, validated excerpt-backed suggestions, and admin review into draft catalog entries. Replacement/deletion removes chunks and retires unchanged document-backed catalog entries. Both builds and 11 backend tests passed against an isolated local PostgreSQL database, including two-workspace authorization, invalid evidence, retry, replacement, and deletion. A Chromium walkthrough passed upload → process → review → accept as draft. Gemini extraction and Neon production migration were not exercised; tests used mock providers and no production data was changed.
+
+**2026-10-07 — Step 2:** Added `004_target_accounts.sql`, scoped target account APIs and screens, owner checks, duplicate handling, account research adapter, history, and explicit same-domain linking for owned V1 reports. Isolated PostgreSQL tests cover two workspaces, forged claims, archive/history, duplicate active jobs, failed provider calls without paid usage, and composite foreign keys. Browser walkthrough passed create → edit → link older report → archive. A separate isolated database seeded under V1 was upgraded through migrations 001–004; its user, run, report, and null account references remained intact. Backend/frontend builds passed. Live Gemini research completion and Neon/production migration were not exercised.

@@ -10,6 +10,7 @@ import chatRoutes from "./routes/chat.routes.js";
 import workspaceRoutes from "./routes/workspace.routes.js";
 import sellerCatalogRoutes from "./routes/sellerCatalog.routes.js";
 import sellerDocumentsRoutes from "./routes/sellerDocuments.routes.js";
+import targetAccountsRoutes from "./routes/targetAccounts.routes.js";
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use("/api/chat", chatRoutes);
 app.use("/api/workspace", workspaceRoutes);
 app.use("/api/seller", sellerCatalogRoutes);
 app.use("/api/seller-documents", sellerDocumentsRoutes);
+app.use("/api/targets", targetAccountsRoutes);
 
 /* Health Check */
 app.get("/", (req, res) => {

@@ -2,6 +2,7 @@ export interface IAnalysisRun {
   id: string;
   userId: string;
   workspaceId: string;
+  accountId?: string | null;
   status: "queued" | "running" | "completed" | "failed";
   input: { customerName: string; companyDomain: string };
   agentRuns: Record<string, unknown>;

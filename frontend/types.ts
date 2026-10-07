@@ -1,5 +1,6 @@
 export enum AppTab {
   ANALYSIS = 'ANALYSIS',
+  TARGETS = 'TARGETS',
   LIBRARY = 'LIBRARY',
   SERVICES = 'SERVICES',
   ACTIVITY = 'ACTIVITY',
@@ -214,6 +215,7 @@ export interface ReportData {
 // Shape from GET /api/analysis/v2/reports and /report/:id
 export interface SavedReport {
   _id: string;
+  accountId?: string | null;
   userId: string;
   runId: string;
   customerName: string;

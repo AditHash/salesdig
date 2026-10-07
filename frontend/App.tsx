@@ -1,6 +1,8 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { AnalysisView } from './components/AnalysisView';
+import { TargetsView } from './components/TargetsView';
+import { TargetDetailView } from './components/TargetDetailView';
 import { LibraryView } from './components/LibraryView';
 import { ServicesView } from './components/ServicesView';
 import { UsersView } from './components/UsersView';
@@ -13,7 +15,7 @@ import { AdminAnalysesView } from './components/AdminAnalysesView';
 import { AppTab, ReportData } from './types';
 import {
   LayoutDashboard, BookOpen, Briefcase, Activity,
-  Shield, LogOut, ChevronLeft, ChevronRight, Menu, History, Users, User, FileText
+  Shield, LogOut, ChevronLeft, ChevronRight, Menu, History, Users, User, FileText, Building2
 } from 'lucide-react';
 import { logout } from './services/auth.service';
 import { regenerateReport } from './services/analysis.service';
@@ -36,6 +38,7 @@ interface RegeneratingState {
 
 const NAV_ITEMS = [
   { tab: AppTab.ANALYSIS, path: '/', label: 'Analysis', icon: LayoutDashboard },
+  { tab: AppTab.TARGETS, path: '/targets', label: 'Target accounts', icon: Building2 },
   { tab: AppTab.HISTORY, path: '/history', label: 'History', icon: History },
   { tab: AppTab.SERVICES, path: '/services', label: 'Services', icon: Briefcase },
   { tab: AppTab.LIBRARY, path: '/library', label: 'Library', icon: BookOpen },
@@ -113,6 +116,7 @@ const App: React.FC = () => {
   const isAdmin = user?.role === 'admin';
 
   const getActiveTab = (pathname: string): AppTab => {
+    if (pathname.startsWith('/targets')) return AppTab.TARGETS;
     if (pathname === '/services') return AppTab.SERVICES;
     if (pathname === '/library') return AppTab.LIBRARY;
     if (pathname === '/activity') return AppTab.ACTIVITY;
@@ -312,6 +316,8 @@ const App: React.FC = () => {
               stepIdx={analysisStepIdx} setStepIdx={setAnalysisStepIdx}
               stepTimer={analysisStepTimer}
             />} />
+            <Route path="/targets" element={<TargetsView />} />
+            <Route path="/targets/:id" element={<TargetDetailView />} />
             <Route path="/services" element={<ServicesView companyName={workspaceSettings?.companyName} services={workspaceSettings?.salesServices} showDefaultCatalog={workspaceSettings?.companyName === 'Workmates'} />} />
             <Route path="/library" element={!workspaceSettingsLoaded
               ? <div className="flex min-h-[60vh] items-center justify-center" role="status" aria-label="Loading workspace settings"><div className="h-8 w-8 animate-spin rounded-full border-b-2 border-teal-600" /></div>

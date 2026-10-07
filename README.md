@@ -84,6 +84,14 @@ Workspace admins can upload UTF-8 `.txt` or `.md` files up to 20 KB in Company S
 
 The worker retries interrupted processing up to three attempts and marks failures for manual retry in Company Settings. It needs `GEMINI_API_KEY` for extraction and embeddings. `SELLER_EXTRACTION_MODEL` optionally overrides its default extraction model. Migration `003_seller_documents.sql` runs on backend startup after the catalog migration. Run `npm run build` and `TEST_DATABASE_URL='postgresql://test_user@localhost:5432/salesdig_test' npm test` before using a shared database; the test URL must end in `_test`.
 
+## Target accounts
+
+The **Target accounts** page stores prospects per workspace. Any member can create an account and research it; the account owner or workspace admin can edit or archive it. Admins can assign an active workspace member as owner through the API. Exact active name-and-domain duplicates return a conflict, while differently named companies may share a domain. A second research request for the same account is rejected while one run is active; completed or failed runs do not block a refresh.
+
+Research from an account uses the existing V1 analysis pipeline and links its new run and report to the account. It still waits for the whole analysis request; durable background research is planned for V2 Step 3. Report access remains under existing V1 owner/admin rules. Users can explicitly link their own older reports only when the report domain matches the account domain. No historical report is linked automatically. Archived accounts keep their linked history, but cannot start new research until restored.
+
+Additive migration `004_target_accounts.sql` runs after the seller-document migration. It adds account records and optional account references to runs and reports; existing references remain `NULL`. Back up shared databases before startup. A forward fix or backup restore is needed if a migration fails; removing the new table or columns would discard account links.
+
 ## WSL with Windows PostgreSQL
 
 When Node runs in WSL and PostgreSQL runs on Windows, `localhost` in `DATABASE_URL` points to WSL. Set its host to the Windows host address shown by `ip route` (the default route). When opening a WSL-hosted frontend from Windows, start Vite with `npm run dev -- --host 0.0.0.0`, then open the WSL IP shown by `hostname -I`. Set `VITE_BACKEND_URL` and `FRONTEND_URL` to matching reachable addresses. WSL addresses can change after a restart.

@@ -2,6 +2,7 @@ export interface IAnalysisReport {
   id: string;
   userId: string;
   workspaceId: string;
+  accountId?: string | null;
   runId: string;
   customerName: string;
   companyDomain: string;

@@ -91,16 +91,17 @@ export const runOrchestratorAgent = async (
   userId: string,
   input: RunAnalysisInput,
   workspaceId = DEFAULT_WORKSPACE_ID,
-  existingReportId?: string
+  existingReportId?: string,
+  accountId?: string
 ): Promise<RunResult> => {
   const startedAt = new Date();
   const workspace = await getWorkspaceSettings(workspaceId) || DEFAULT_WORKSPACE_SETTINGS;
 
   const runId = crypto.randomUUID();
   await postgres.query(
-    `INSERT INTO analysis_runs (id, user_id, workspace_id, status, input, agent_runs, started_at)
-     VALUES ($1, $2, $3, 'running', $4::jsonb, '{}'::jsonb, $5)`,
-    [runId, userId, workspaceId, JSON.stringify({ customerName: input.customerName, companyDomain: input.companyDomain }), startedAt]
+    `INSERT INTO analysis_runs (id, user_id, workspace_id, account_id, status, input, agent_runs, started_at)
+     VALUES ($1, $2, $3, $4, 'running', $5::jsonb, '{}'::jsonb, $6)`,
+    [runId, userId, workspaceId, accountId ?? null, JSON.stringify({ customerName: input.customerName, companyDomain: input.companyDomain }), startedAt]
   );
 
   try {
@@ -218,10 +219,10 @@ export const runOrchestratorAgent = async (
             JSON.stringify(partnerProductRecommendations), overallConfidence, workspaceId]
         )
       : await postgres.query(
-          `INSERT INTO analysis_reports (id, user_id, workspace_id, run_id, customer_name, company_domain, annual_spend,
+          `INSERT INTO analysis_reports (id, user_id, workspace_id, account_id, run_id, customer_name, company_domain, annual_spend,
              validated_profile, recommendations, strategy, overall_confidence, partner_product_recommendations)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9::jsonb, $10::jsonb, $11, $12::jsonb) RETURNING id`,
-          [reportId, userId, workspaceId, runId, reportPayload.customerName, reportPayload.companyDomain, annualSpend,
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10::jsonb, $11::jsonb, $12, $13::jsonb) RETURNING id`,
+          [reportId, userId, workspaceId, accountId ?? null, runId, reportPayload.customerName, reportPayload.companyDomain, annualSpend,
             JSON.stringify(reportPayload.validatedProfile), JSON.stringify(funding), JSON.stringify(strategy),
             overallConfidence, JSON.stringify(partnerProductRecommendations)]
         );
