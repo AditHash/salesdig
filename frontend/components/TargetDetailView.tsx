@@ -6,11 +6,12 @@ import { getMyReports } from '../services/analysis.service';
 import { SavedReport } from '../types';
 import {
   getLatestTargetEvidence, getTarget, getTargetEvidence, getTargetHistory, getTargetIntelligence, getTargetResearchRun,
-  linkTargetReport, researchTarget, retryTargetResearch, updateTarget,
-  type ResearchEvidence, type TargetAccount, type TargetIntelligence, type TargetReport, type TargetRun
+  linkTargetReport, researchTarget, retryTargetResearch, updateTarget, getTargetOpportunities, matchTargetOpportunities,
+  type OpportunityResult, type ResearchEvidence, type TargetAccount, type TargetIntelligence, type TargetReport, type TargetRun
 } from '../services/targets.service';
 import { ResearchEvidenceView } from './ResearchEvidenceView';
 import { TargetIntelligenceView } from './TargetIntelligenceView';
+import { OpportunityMapView } from './OpportunityMapView';
 
 const message = (error: any, fallback: string) => error.response?.data?.message || fallback;
 const domain = (value: string) => {
@@ -29,6 +30,8 @@ export const TargetDetailView: React.FC = () => {
   const [evidenceLoading, setEvidenceLoading] = useState(true);
   const [intelligence, setIntelligence] = useState<TargetIntelligence | null>(null);
   const [intelligenceLoading, setIntelligenceLoading] = useState(true);
+  const [opportunities, setOpportunities] = useState<OpportunityResult | null>(null);
+  const [opportunitiesLoading, setOpportunitiesLoading] = useState(true);
   const [legacy, setLegacy] = useState<SavedReport[]>([]);
   const [draft, setDraft] = useState({ name: '', website: '', industry: '', geography: '', targetingReason: '', notes: '', tags: '' });
   const [loading, setLoading] = useState(true);
@@ -56,6 +59,10 @@ export const TargetDetailView: React.FC = () => {
       try { setIntelligence((await getTargetIntelligence(id)).data); }
       catch { setIntelligence(null); }
       finally { setIntelligenceLoading(false); }
+      setOpportunitiesLoading(true);
+      try { setOpportunities((await getTargetOpportunities(id)).data); }
+      catch { setOpportunities(null); }
+      finally { setOpportunitiesLoading(false); }
     } catch (caught: any) { setError(message(caught, 'Could not load account.')); }
     finally { setLoading(false); }
   };
@@ -120,6 +127,13 @@ export const TargetDetailView: React.FC = () => {
     } finally { setBusy(false); }
   };
 
+  const match = async () => {
+    setBusy(true); setError(''); setNotice('Matching approved offerings to research evidence.');
+    try { await matchTargetOpportunities(id); setTimeout(() => void getTargetOpportunities(id).then(response => setOpportunities(response.data)), 700); setNotice('Offering matching queued. Refresh this account shortly for results.'); }
+    catch (caught: any) { setError(message(caught, 'Could not match offerings.')); }
+    finally { setBusy(false); }
+  };
+
   const retry = async (runId: string) => {
     setBusy(true); setError('');
     try { await retryTargetResearch(id, runId); await refreshHistory(); setNotice('Research queued for retry.'); }
@@ -156,7 +170,7 @@ export const TargetDetailView: React.FC = () => {
     <button onClick={() => navigate('/targets')} className="flex items-center gap-1 text-sm font-bold text-teal-700"><ArrowLeft className="h-4 w-4" /> Target accounts</button>
     <div className="flex flex-wrap items-start justify-between gap-4"><div><h1 className="flex items-center gap-2 text-2xl font-black text-slate-900"><Building2 className="h-6 w-6 text-teal-600" />{account.name}</h1>
       <p className="mt-1 text-sm text-slate-500">{account.normalizedDomain} · {account.archivedAt ? 'Archived' : 'Active'} · Owner: {account.ownerName || 'Unassigned'}</p></div>
-      <button disabled={busy || !!account.archivedAt} onClick={() => void run()} className="flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50"><Play className="h-4 w-4" />{busy ? 'Working…' : 'Run company research'}</button></div>
+      <div className="flex gap-2"><button disabled={busy || !!account.archivedAt} onClick={() => void match()} className="rounded-xl border border-teal-600 px-4 py-2.5 text-sm font-bold text-teal-700 disabled:opacity-50">Match offerings</button><button disabled={busy || !!account.archivedAt} onClick={() => void run()} className="flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50"><Play className="h-4 w-4" />{busy ? 'Working…' : 'Run company research'}</button></div></div>
     {error && <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}
     {notice && <p role="status" className="rounded-xl bg-teal-50 p-3 text-sm text-teal-800">{notice}</p>}
     <div className="grid gap-6 lg:grid-cols-2">
@@ -179,6 +193,7 @@ export const TargetDetailView: React.FC = () => {
     </div>
     <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div className="mb-3 flex items-center justify-between"><h2 className="text-lg font-bold text-slate-900">Sources and claims</h2><button onClick={() => void showEvidence()} className="text-xs font-bold text-teal-700">Latest successful</button></div><ResearchEvidenceView evidence={evidence} loading={evidenceLoading} /></section>
     <TargetIntelligenceView intelligence={intelligence} evidence={evidence} loading={intelligenceLoading} />
+    <OpportunityMapView result={opportunities} loading={opportunitiesLoading} />
     {candidates.length > 0 && !account.archivedAt && <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><h2 className="text-lg font-bold text-slate-900">Link older reports</h2><p className="mt-1 text-sm text-slate-500">Only your existing reports with this exact domain can be linked. Nothing is linked automatically.</p>
       <div className="mt-3 space-y-2">{candidates.map(report => <div key={report._id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 p-3 text-sm"><span>{report.customerName} · {new Date(report.createdAt).toLocaleDateString()}</span><button disabled={busy} onClick={() => void link(report._id)} className="font-bold text-teal-700 disabled:opacity-50">Link report</button></div>)}</div></section>}
   </div>;

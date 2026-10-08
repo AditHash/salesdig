@@ -74,6 +74,10 @@ export interface TargetIntelligence {
   signals: Array<{ id: string; claimId: string; signalType: string; strength: 'low' | 'medium' | 'high'; eventDate: string | null; interpretation: string }>;
   gaps: Array<{ id: string; claimId: string; statement: string; certainty: 'likely' | 'unknown'; rationale: string }>;
 }
+export interface OpportunityResult {
+  set: { id: string; status: string; resultReason: string | null; scoringVersion: string; createdAt: string } | null;
+  opportunities: Array<{ id: string; offeringName: string; title: string; targetNeed: string; needKind: 'confirmed_need' | 'discovery_hypothesis'; rationale: string; uncertainties: string[]; whyNow: string; entryAction: string; score: number; coverage: number; evidenceConfidence: 'low' | 'medium' | 'high'; scoreBreakdown: Record<string, { weight: number; value: number | null; contribution: number | null; reason: string }>; evidence: Array<{ claimId: string; statement: string }> }>;
+}
 
 export const listTargets = (page = 1, search = '', includeArchived = false) =>
   API.get<{ data: TargetAccount[]; total: number; page: number; limit: number }>('/targets', {
@@ -91,6 +95,8 @@ export const researchTarget = (id: string) => API.post<{ runId: string; status: 
 export const getTargetResearchRun = (id: string, runId: string) => API.get<TargetRun>(`/targets/${id}/research/${runId}`);
 export const getLatestTargetEvidence = (id: string) => API.get<ResearchEvidence>(`/targets/${id}/research/latest/evidence`);
 export const getTargetIntelligence = (id: string) => API.get<TargetIntelligence>(`/targets/${id}/intelligence`);
+export const getTargetOpportunities = (id: string) => API.get<OpportunityResult>(`/targets/${id}/opportunities`);
+export const matchTargetOpportunities = (id: string) => API.post<{ kind: string; setId: string }>(`/targets/${id}/opportunities`);
 export const getTargetEvidence = (id: string, runId: string) => API.get<ResearchEvidence>(`/targets/${id}/research/${runId}/evidence`);
 export const retryTargetResearch = (id: string, runId: string) => API.post(`/targets/${id}/research/${runId}/retry`);
 export const linkTargetReport = (id: string, reportId: string) => API.post(`/targets/${id}/link-report`, { reportId });

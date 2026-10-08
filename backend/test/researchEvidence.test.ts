@@ -14,6 +14,7 @@ process.env.JWT_SECRET = "salesdig-research-evidence-test-secret";
 const { postgres, initializePostgres } = await import("../src/config/postgres.js");
 const { DEFAULT_WORKSPACE_SETTINGS } = await import("../src/config/workspaceDefaults.js");
 const { processNextAccountResearch } = await import("../src/services/research/researchJobs.service.js");
+const { processNextOpportunityMatching, calculateSalesPotential } = await import("../src/services/opportunityMatching.service.js");
 const { validateResearchClaims } = await import("../src/services/research/evidenceExtraction.service.js");
 const { validateTargetIntelligence } = await import("../src/services/research/intelligenceExtraction.service.js");
 const { isPublicAddress, parsePublicUrl, extractPageText } = await import("../src/services/research/publicSourceFetch.service.js");
@@ -114,6 +115,18 @@ test("queued account research stores evidence and preserves workspace boundaries
   assert.equal(intelligence.status, 200);
   assert.equal(intelligence.data.technologies[0].status, "confirmed");
   assert.equal((await request(`/targets/${id}/intelligence`, users[1])).status, 404);
+  const offeringId = randomUUID();
+  await postgres.query(`INSERT INTO seller_offerings (id,workspace_id,name,offering_type,description,capabilities,review_status,created_by)
+    VALUES ($1,$2,'Cloud application consulting','consulting','Cloud application consulting for retail teams.',ARRAY['cloud applications','retail'], 'approved',$3)`, [offeringId, workspaces[0], users[0]]);
+  await postgres.query("INSERT INTO seller_offering_versions (workspace_id,offering_id,version,snapshot,changed_by) VALUES ($1,$2,1,$3::jsonb,$4)", [workspaces[0], offeringId, JSON.stringify({ name: "Cloud application consulting" }), users[0]]);
+  const match = await request(`/targets/${id}/opportunities`, users[0], "POST");
+  assert.equal(match.status, 202);
+  assert.equal(await processNextOpportunityMatching(), true);
+  const opportunities = await request(`/targets/${id}/opportunities`, users[0]);
+  assert.equal(opportunities.status, 200);
+  assert.equal(opportunities.data.opportunities.length, 1);
+  assert.equal(opportunities.data.opportunities[0].evidence.length, 1);
+  assert.equal((await request(`/targets/${id}/opportunities`, users[1])).status, 404);
   assert.equal((await request(`/analysis/v2/report/${run.data.reportId}`, users[0])).status, 200);
   const pdf = await fetch(`${base}/analysis/v2/report/${run.data.reportId}/pdf`, {
     headers: { Authorization: `Bearer ${token(users[0])}` }
@@ -125,6 +138,15 @@ test("queued account research stores evidence and preserves workspace boundaries
   const report = await postgres.query("SELECT research_status, account_id FROM analysis_reports WHERE id = $1", [run.data.reportId]);
   assert.equal(report.rows[0].research_status, "complete");
   assert.equal(report.rows[0].account_id, id);
+});
+
+test("sales potential scoring is deterministic and does not treat missing data as a negative", () => {
+  const input = { offeringText: "cloud application retail", claim: "retail company builds cloud applications", needKind: "confirmed_need" as const, signals: [], technologies: [], people: [] };
+  const first = calculateSalesPotential(input);
+  const second = calculateSalesPotential(input);
+  assert.deepEqual(first, second);
+  assert.equal(first.coverage, 50);
+  assert.equal(first.breakdown.financialCapacity.value, null);
 });
 
 test("invalid evidence leaves labelled partial sources; retry reuses sources and publishes once", async () => {

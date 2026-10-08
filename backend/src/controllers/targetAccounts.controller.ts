@@ -9,6 +9,7 @@ import {
   getTargetAccount, getTargetHistory, linkLegacyReport, listTargetAccounts,
   updateTargetAccount, validateTargetInput
 } from "../services/targetAccounts.service.js";
+import { queueOpportunityMatching, readLatestOpportunities } from "../services/opportunityMatching.service.js";
 
 const scope = (req: AuthRequest, res: Response) => {
   if (!req.userId || !req.workspaceId) { res.status(401).json({ message: "Workspace context is missing" }); return null; }
@@ -122,6 +123,29 @@ export const readTargetIntelligence = async (req: AuthRequest, res: Response) =>
     if (!account) return res.status(404).json({ message: "Target account not found" });
     return res.json(await readLatestTargetIntelligence(actor.workspaceId, account.id));
   } catch (error) { return failure(res, error, "read intelligence for"); }
+};
+
+export const matchTargetOpportunities = async (req: AuthRequest, res: Response) => {
+  const actor = scope(req, res); if (!actor) return;
+  try {
+    if (req.body && Object.keys(req.body).length) throw new TargetValidationError("Matching request must not contain input");
+    const account = await getTargetAccount(actor.workspaceId, String(req.params.id));
+    if (!account) return res.status(404).json({ message: "Target account not found" });
+    if (account.archivedAt) return res.status(409).json({ message: "Restore account before matching offerings" });
+    const result = await queueOpportunityMatching(actor.workspaceId, account.id, actor.userId);
+    if (result.kind === "missing_research") return res.status(409).json({ message: "Complete account research before matching offerings" });
+    if (result.kind === "active") return res.status(409).json({ message: "Offering matching is already running for this account", setId: result.setId });
+    return res.status(result.kind === "completed" ? 200 : 202).json(result);
+  } catch (error) { return failure(res, error, "match offerings for"); }
+};
+
+export const readTargetOpportunities = async (req: AuthRequest, res: Response) => {
+  const actor = scope(req, res); if (!actor) return;
+  try {
+    const account = await getTargetAccount(actor.workspaceId, String(req.params.id));
+    if (!account) return res.status(404).json({ message: "Target account not found" });
+    return res.json(await readLatestOpportunities(actor.workspaceId, account.id));
+  } catch (error) { return failure(res, error, "read opportunities for"); }
 };
 
 export const readTargetSource = async (req: AuthRequest, res: Response) => {

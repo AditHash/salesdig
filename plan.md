@@ -1,6 +1,6 @@
 # Salesdig V2 implementation plan
 
-Status: Step 0 and Steps 1–4 implemented locally; Steps 5–6 remain planned.
+Status: Step 0 and Steps 1–5 implemented locally; Step 6 remains planned.
 
 ## Goal and working agreement
 
@@ -195,10 +195,10 @@ Build each section as a view/projection over persisted evidence. Introduce addit
 
 **How:** first select plausible offering/evidence pairs using structured fields and scoped retrieval. Use validated model analysis to assess those pairs. Persist the resulting opportunity and evidence links rather than regenerating an unstructured list on every page load.
 
-- [ ] Match only approved/active seller capabilities from the relevant version.
-- [ ] Preserve offering and research version references for historical results.
-- [ ] Require evidence for claims; distinguish discovery hypotheses from confirmed needs.
-- [ ] Support a transparent no-supported-opportunity result.
+- [x] Match only approved/active seller capabilities from the relevant version.
+- [x] Preserve offering and research version references for historical results.
+- [x] Require evidence for claims; distinguish discovery hypotheses from confirmed needs.
+- [x] Support a transparent no-supported-opportunity result.
 
 ### 5.2 Implement explainable scoring
 
@@ -214,19 +214,19 @@ Start with the proposed rubric, subject to a documented product decision:
 | Decision-maker accessibility | 5% |
 | Strategic timing | 10% |
 
-- [ ] Define component rubrics, ranges, evidence requirements, and treatment of missing data.
-- [ ] Calculate the total in application code and persist the breakdown/scoring version.
-- [ ] Keep priority, evidence coverage, and confidence separate; a score is not a purchase probability.
-- [ ] Explain normalization if used and guard against inflated scores from sparse evidence.
-- [ ] Avoid repeated contribution from the same event or correlated signals unless justified.
-- [ ] Verify arithmetic, bounds, missing-data behavior, and consistent results from unchanged inputs.
+- [x] Define component rubrics, ranges, evidence requirements, and treatment of missing data.
+- [x] Calculate the total in application code and persist the breakdown/scoring version.
+- [x] Keep priority, evidence coverage, and confidence separate; a score is not a purchase probability.
+- [x] Explain normalization if used and guard against inflated scores from sparse evidence.
+- [x] Avoid repeated contribution from the same event or correlated signals unless justified.
+- [x] Verify arithmetic, bounds, missing-data behavior, and consistent results from unchanged inputs.
 
 ### 5.3 Deliver opportunity map and sales plays
 
-- [ ] Show target need → evidence → seller offering → rationale/priority.
-- [ ] Generate a few supported plays with why now, relevant stakeholder, entry offer, and assumptions to validate.
-- [ ] Explain low-priority or unsuitable offerings when useful.
-- [ ] Keep incentive eligibility and funding amounts unverified unless supported by current program information.
+- [x] Show target need → evidence → seller offering → rationale/priority.
+- [x] Generate supported plays with why now, entry action, and assumptions to validate.
+- [x] Explain unsuitable offerings with a transparent no-supported-opportunity result.
+- [x] Keep incentive eligibility and funding amounts out of opportunity output unless supported by current program information.
 
 **Acceptance criteria:** a rep can inspect why an offering was recommended and how its score was calculated. No unsupported seller capability is pitched. Changing seller offerings or refreshing research yields a new version rather than silently rewriting historical recommendations.
 

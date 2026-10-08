@@ -92,6 +92,10 @@ Research from an account creates a durable background run and returns immediatel
 
 Completed evidence-backed research also builds account intelligence from its validated claims: an overview, Tech DNA, sourced stakeholders, discrete buying signals, and evidence-backed gap hypotheses. Each item links back to its source claim. Technology inferred from a hiring post stays **likely** rather than confirmed production usage; unknown information and unsourced contact details remain unknown. Gap hypotheses are discovery questions, never statements based only on missing public information.
 
+## Opportunity matching
+
+From a researched target account, select **Match offerings**. Salesdig compares only approved, active workspace offerings with saved, cited target findings. It saves the matching input and seller-offering versions, so a repeated unchanged request reuses the existing result. Sales Potential is a priority rubric with evidence coverage and score components; it is not a purchase probability. Missing data stays unavailable instead of becoming a negative score.
+
 Additive migration `004_target_accounts.sql` runs after the seller-document migration. It adds account records and optional account references to runs and reports; existing references remain `NULL`. Back up shared databases before startup. A forward fix or backup restore is needed if a migration fails; removing the new table or columns would discard account links.
 
 ## WSL with Windows PostgreSQL
