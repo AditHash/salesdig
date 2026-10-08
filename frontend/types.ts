@@ -216,6 +216,8 @@ export interface ReportData {
 export interface SavedReport {
   _id: string;
   accountId?: string | null;
+  researchStatus?: 'legacy' | 'complete' | 'partial';
+  researchDate?: string | null;
   userId: string;
   runId: string;
   customerName: string;

@@ -129,11 +129,12 @@ export const regenerateReport = async (req: AuthRequest, res: Response) => {
   try {
     if (!req.userId) return res.status(401).json({ message: "Unauthorized" });
     const result = await postgres.query(
-      "SELECT customer_name, company_domain, account_id FROM analysis_reports WHERE id = $1 AND user_id = $2 AND workspace_id = $3",
+      "SELECT customer_name, company_domain, account_id, research_status FROM analysis_reports WHERE id = $1 AND user_id = $2 AND workspace_id = $3",
       [req.params.reportId, req.userId, req.workspaceId]
     );
     const existing = result.rows[0];
     if (!existing) return res.status(403).json({ message: "Not found or not authorized" });
+    if (existing.research_status !== "legacy") return res.status(409).json({ message: "Refresh evidence-backed research from the target account" });
     if (existing.account_id) {
       const account = await postgres.query("SELECT archived_at FROM target_accounts WHERE id = $1 AND workspace_id = $2", [existing.account_id, req.workspaceId]);
       if (!account.rows[0] || account.rows[0].archived_at) return res.status(409).json({ message: "Restore account before researching" });

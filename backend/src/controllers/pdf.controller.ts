@@ -7,6 +7,7 @@ import { mapDbRow } from "../utils/dbRows.js";
 import { logActivity } from "../utils/logActivity.js";
 import { getWorkspaceSettings } from "../config/postgres.js";
 import { DEFAULT_WORKSPACE_SETTINGS } from "../config/workspaceDefaults.js";
+import { readResearchEvidence } from "../services/research/researchJobs.service.js";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -20,8 +21,32 @@ const logoBase64 = fs.existsSync(logoPath)
 const pct   = (n: number) => `${Math.round(n * 100)}%`;
 const money = (n: number) => `$${Number(n).toLocaleString()}`;
 const esc   = (s: any)    => String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const escAttr = (s: any) => esc(s).replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 
-function buildHtml(report: any, profile: any, directors: any[], logo: string, workspace = DEFAULT_WORKSPACE_SETTINGS): string {
+function buildEvidenceHtml(report: any, workspace: any, evidence: any): string {
+  const sources = new Map((evidence.sources as any[]).map(source => [source.id, source]));
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+    *{box-sizing:border-box} body{font-family:Arial,sans-serif;color:#1e293b;line-height:1.5;margin:0;padding:38px;font-size:12px}
+    h1{font-size:26px;margin:0 0 4px} h2{font-size:17px;margin:24px 0 8px;color:#0f766e}
+    .meta{color:#64748b;font-size:11px}.claim{border:1px solid #cbd5e1;border-radius:8px;padding:12px;margin:10px 0;break-inside:avoid}
+    .tag{font-size:10px;font-weight:bold;text-transform:uppercase;color:#0f766e}.quote{background:#f8fafc;padding:8px;margin:8px 0;font-size:11px}
+    a{color:#0f766e;overflow-wrap:anywhere} li{margin:8px 0;break-inside:avoid}
+  </style></head><body>
+  <p class="meta">${esc(workspace.companyName)} · SALESDIG EVIDENCE BRIEF</p><h1>${esc(report.customerName)}</h1>
+  <p class="meta">${esc(report.companyDomain)} · Research ${esc(new Date(report.researchDate || report.createdAt).toISOString().slice(0, 10))} · ${esc(evidence.claims.length)} claims · ${esc(evidence.sources.length)} sources</p>
+  <p>Claims below are AI-extracted from public pages. Check excerpts and source dates before sales use. Unknown dates remain unknown.</p>
+  <h2>Claims and supporting excerpts</h2>
+  ${(evidence.claims as any[]).map(claim => `<div class="claim"><div class="tag">${esc(claim.classification)} · ${esc(claim.certainty)}${claim.eventDate ? ` · Event ${esc(claim.eventDate)}` : ""}</div>
+    <p><strong>${esc(claim.statement)}</strong></p>${(claim.evidence as any[]).map((reference: any) => {
+      const source: any = sources.get(reference.sourceId);
+      return `<div class="quote">“${esc(reference.excerpt)}”<br>${source ? `<a href="${escAttr(source.url)}">${esc(source.title || source.url)}</a>` : "Source unavailable"}</div>`;
+    }).join("")}</div>`).join("")}
+  <h2>Sources</h2><ol>${(evidence.sources as any[]).map(source => `<li><a href="${escAttr(source.url)}">${esc(source.title || source.url)}</a><br><span class="meta">Retrieved ${esc(new Date(source.retrievedAt).toISOString().slice(0, 10))}${source.publishedAt ? ` · Published ${esc(new Date(source.publishedAt).toISOString().slice(0, 10))}` : " · Publication date unknown"}</span></li>`).join("")}</ol>
+  </body></html>`;
+}
+
+function buildHtml(report: any, profile: any, directors: any[], logo: string, workspace = DEFAULT_WORKSPACE_SETTINGS, evidence?: any): string {
+  if (evidence) return buildEvidenceHtml(report, workspace, evidence);
   const recs: any[]  = report.recommendations ?? [];
   const strat: any   = report.strategy ?? {};
   const resolutions: any[] = strat.resolutions ?? [];
@@ -445,7 +470,11 @@ export const generateReportPdf = async (req: AuthRequest, res: Response) => {
     const workspace = await getWorkspaceSettings(req.workspaceId!) || DEFAULT_WORKSPACE_SETTINGS;
     const workspaceLabel = workspace.companyName === "Workmates" ? "Salesdig" : workspace.companyName;
     const workspaceLogo = logoBase64;
-    const html = buildHtml(report, profile, directors, workspaceLogo, workspace);
+    const evidence = report.accountId && report.researchStatus !== "legacy"
+      ? await readResearchEvidence(req.workspaceId!, report.accountId, report.runId)
+      : null;
+    if (report.researchStatus !== "legacy" && !evidence) return res.status(409).json({ message: "Evidence for this report is unavailable" });
+    const html = buildHtml(report, profile, directors, workspaceLogo, workspace, evidence);
 
     const browser = await puppeteer.launch({
   headless: true,

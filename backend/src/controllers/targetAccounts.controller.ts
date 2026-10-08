@@ -1,6 +1,9 @@
 import type { Response } from "express";
 import type { AuthRequest } from "../middlewares/isAuth.js";
-import { runOrchestratorAgent } from "../services/agents/orchestrator.agent.js";
+import {
+  queueAccountResearch, readAccountResearch, readLatestResearchEvidence, readResearchEvidence,
+  readResearchSourceContent, retryAccountResearch
+} from "../services/research/researchJobs.service.js";
 import {
   TargetConflictError, TargetForbiddenError, TargetValidationError, createTargetAccount,
   getTargetAccount, getTargetHistory, linkLegacyReport, listTargetAccounts,
@@ -74,15 +77,65 @@ export const researchTarget = async (req: AuthRequest, res: Response) => {
     const account = await getTargetAccount(actor.workspaceId, String(req.params.id));
     if (!account) return res.status(404).json({ message: "Target account not found" });
     if (account.archivedAt) return res.status(409).json({ message: "Restore account before researching" });
-    const result = await runOrchestratorAgent(actor.userId, {
+    const result = await queueAccountResearch(actor.workspaceId, account.id, actor.userId, {
       customerName: account.name, companyDomain: account.normalizedDomain
-    }, actor.workspaceId, undefined, account.id);
-    return res.status(201).json(result);
+    });
+    return res.status(202).json(result);
   } catch (error) {
     if ((error as any)?.code === "23505") return res.status(409).json({ message: "Research is already running for this account" });
     if (error instanceof TargetValidationError) return failure(res, error, "research");
     console.error("Target research failed", { accountId: req.params.id, message: error instanceof Error ? error.message : "Unknown error" });
-    return res.status(500).json({ message: "Target research failed. Open account history for run status." });
+    return res.status(500).json({ message: "Could not queue target research." });
+  }
+};
+
+export const readTargetResearchRun = async (req: AuthRequest, res: Response) => {
+  const actor = scope(req, res); if (!actor) return;
+  try {
+    const run = await readAccountResearch(actor.workspaceId, String(req.params.id), String(req.params.runId));
+    return run ? res.json(run) : res.status(404).json({ message: "Research run not found" });
+  } catch (error) { return failure(res, error, "read research for"); }
+};
+
+export const readTargetEvidence = async (req: AuthRequest, res: Response) => {
+  const actor = scope(req, res); if (!actor) return;
+  try {
+    const evidence = await readResearchEvidence(actor.workspaceId, String(req.params.id), String(req.params.runId));
+    return evidence ? res.json(evidence) : res.status(404).json({ message: "Research evidence not found" });
+  } catch (error) { return failure(res, error, "read evidence for"); }
+};
+
+export const readLatestTargetEvidence = async (req: AuthRequest, res: Response) => {
+  const actor = scope(req, res); if (!actor) return;
+  try {
+    const account = await getTargetAccount(actor.workspaceId, String(req.params.id));
+    if (!account) return res.status(404).json({ message: "Target account not found" });
+    const evidence = await readLatestResearchEvidence(actor.workspaceId, account.id);
+    return evidence ? res.json(evidence) : res.json({ run: null, sources: [], claims: [] });
+  } catch (error) { return failure(res, error, "read evidence for"); }
+};
+
+export const readTargetSource = async (req: AuthRequest, res: Response) => {
+  const actor = scope(req, res); if (!actor) return;
+  try {
+    const source = await readResearchSourceContent(actor.workspaceId, String(req.params.id),
+      String(req.params.runId), String(req.params.sourceId));
+    return source ? res.json(source) : res.status(404).json({ message: "Research source not found" });
+  } catch (error) { return failure(res, error, "read source for"); }
+};
+
+export const retryTargetResearch = async (req: AuthRequest, res: Response) => {
+  const actor = scope(req, res); if (!actor) return;
+  try {
+    const account = await getTargetAccount(actor.workspaceId, String(req.params.id));
+    if (!account) return res.status(404).json({ message: "Target account not found" });
+    if (account.archivedAt) return res.status(409).json({ message: "Restore account before researching" });
+    const result = await retryAccountResearch(actor.workspaceId, String(req.params.id),
+      String(req.params.runId), actor.userId, actor.isAdmin);
+    return result ? res.status(202).json(result) : res.status(404).json({ message: "Retryable research run not found" });
+  } catch (error) {
+    if ((error as any)?.code === "23505") return res.status(409).json({ message: "Research is already running for this account" });
+    return failure(res, error, "retry research for");
   }
 };
 

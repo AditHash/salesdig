@@ -163,7 +163,8 @@ export const getTargetHistory = async (workspaceId: string, accountId: string, u
        ORDER BY created_at DESC`, [workspaceId, accountId, userId, isAdmin]
     ),
     postgres.query(
-      `SELECT id, user_id, status, error, report_id, started_at, ended_at, created_at
+      `SELECT id, user_id, status, research_stage, attempts, partial_results, resource_usage,
+         error, report_id, started_at, ended_at, created_at
        FROM analysis_runs WHERE workspace_id = $1 AND account_id = $2 AND ($4::boolean OR user_id = $3)
        ORDER BY created_at DESC LIMIT 50`, [workspaceId, accountId, userId, isAdmin]
     )

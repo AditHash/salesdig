@@ -126,37 +126,37 @@ Use at least two workspaces and distinct users in authorization fixtures. Verify
 
 **How:** agree on schemas before changing provider prompts. A source records URL/title, type, retrieved timestamp, publication date if known, extracted content or a content pointer, and deduplication identity. A claim records its statement, classification, source references/excerpts, target/run scope, uncertainty, and freshness.
 
-- [ ] Distinguish publication date, event date, and retrieval date.
-- [ ] Define facts, inferences, and recommendations explicitly.
-- [ ] Validate evidence references against the same tenant, target, and research snapshot.
-- [ ] Preserve unknown dates and missing information instead of filling them with guesses.
+- [x] Distinguish publication date, event date, and retrieval date.
+- [x] Define facts, inferences, and recommendations explicitly.
+- [x] Validate evidence references against the same tenant, target, and research snapshot.
+- [x] Preserve unknown dates and missing information instead of filling them with guesses.
 
 ### 3.2 Extend collection and extraction
 
 **How:** wrap existing search/crawler/extraction utilities to persist provenance. Resolve the correct company before matching findings. Deduplicate repeated content and syndicated sources.
 
-- [ ] Bound source count, crawl depth, response sizes, concurrency, and timeouts.
-- [ ] Apply destination/redirect validation to prevent private-network and metadata fetches.
-- [ ] Treat retrieved content as untrusted data and validate model output.
-- [ ] Store facts separately from inferred business needs.
-- [ ] Mark unsupported or conflicting claims instead of fabricating citations.
+- [x] Bound source count, crawl depth, response sizes, concurrency, and timeouts.
+- [x] Apply destination/redirect validation to prevent private-network and metadata fetches.
+- [x] Treat retrieved content as untrusted data and validate model output.
+- [x] Store facts separately from inferred business needs.
+- [x] Mark unsupported or conflicting claims instead of fabricating citations.
 
 ### 3.3 Make research durable
 
 **How:** extend existing analysis-run/job infrastructure if it supports durable execution. Otherwise introduce the smallest maintainable worker mechanism that supports persistence, retry, and recovery.
 
-- [ ] Persist stage transitions: queued, discovering, crawling, extracting, analyzing, matching, generating, completed; include explicit failure handling.
-- [ ] Return a run ID promptly and expose authorized status/progress through existing transport or polling.
-- [ ] Make stage writes idempotent; use bounded retries/backoff for transient failures.
-- [ ] Keep usable partial results labelled incomplete.
-- [ ] Preserve the last successful report while refresh runs; publish a new snapshot on success.
-- [ ] Record seller-profile version, prompt/schema version, model metadata, and resource usage where available.
+- [x] Persist stages used by this slice: queued, discovering, crawling, extracting, analyzing, generating, completed, and failed. Matching is added with opportunity matching.
+- [x] Return a run ID promptly and expose authorized status/progress through polling.
+- [x] Make stage writes idempotent; use bounded retries/backoff for transient failures.
+- [x] Keep usable partial results labelled incomplete.
+- [x] Preserve the last successful report while refresh runs; publish a new snapshot on success.
+- [x] Record seller-profile version, prompt/schema version, model metadata, and resource usage where available.
 
 ### 3.4 Surface provenance
 
-- [ ] Add sources and claim evidence to the account/report UI.
-- [ ] Preserve source links and fact/inference distinctions in exports.
-- [ ] Show research date, partial/stale states, and unsupported sections clearly.
+- [x] Add sources and claim evidence to the account/report UI.
+- [x] Preserve source links and fact/inference distinctions in exports.
+- [x] Show research date, partial/stale states, and unsupported sections clearly.
 
 **Acceptance criteria:** a completed research run has persisted sources and evidence-linked claims; users can inspect supporting excerpts. A failed stage is visible and retry does not duplicate persisted results. Progress and evidence cannot be retrieved across workspaces. Legacy reports remain readable without synthetic citations.
 

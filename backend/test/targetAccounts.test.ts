@@ -151,7 +151,7 @@ test("forged account IDs cannot create paid work or cross-tenant links", async (
   );
 });
 
-test("account research rejects an active duplicate and records provider failure without a paid call", async () => {
+test("account research rejects an active duplicate and queues without a paid call", async () => {
   const created = await request("/targets", rep, "POST", { name: "Run Target", website: "run-target.example" });
   assert.equal(created.status, 201);
   const id = created.data.id;
@@ -168,11 +168,13 @@ test("account research rejects an active duplicate and records provider failure 
   const previousKey = process.env.GEMINI_API_KEY;
   process.env.GEMINI_API_KEY = "";
   try {
-    assert.equal((await request(`/targets/${id}/research`, rep, "POST")).status, 500);
+    const queued = await request(`/targets/${id}/research`, rep, "POST");
+    assert.equal(queued.status, 202);
+    assert.equal(queued.data.status, "queued");
   } finally { process.env.GEMINI_API_KEY = previousKey; }
   const history = await request(`/targets/${id}/history`, rep);
   assert.equal(history.status, 200);
   assert.equal(history.data.runs.length, 2);
-  assert.equal(history.data.runs[0].status, "failed");
+  assert.equal(history.data.runs[0].status, "queued");
   assert.equal(history.data.runs[0].reportId, null);
 });
