@@ -265,6 +265,7 @@ export interface ServiceCategory {
 }
 
 export interface ChatMessage {
+  contextReferences?: ChatContextReference[];
   role: "user" | "assistant";
   content: string;
   createdAt: string;
@@ -278,6 +279,19 @@ export interface ChatUsedReport {
 }
 
 export interface ChatResponse {
+  contextReferences?: ChatContextReference[];
   reply: string;
   usedReports: ChatUsedReport[];
+}
+export interface ChatContextReference {
+  claimId: string;
+  sourceId: string;
+  runId: string;
+  url: string;
+  title: string;
+  excerpt: string;
+  classification: string;
+  certainty: string;
+  retrievedAt: string;
+  publishedAt: string | null;
 }

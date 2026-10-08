@@ -55,6 +55,7 @@ const ADMIN_ITEMS = [
 const App: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const accountChatId = /^\/targets\/([0-9a-f-]{36})$/i.exec(location.pathname)?.[1];
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [librarySearchTerm, setLibrarySearchTerm] = useState('');
@@ -75,7 +76,7 @@ const App: React.FC = () => {
       .catch(() => { if (active) setWorkspaceSettings(null); })
       .finally(() => { if (active) setWorkspaceSettingsLoaded(true); });
     return () => { active = false; };
-  }, [user?.id]);
+  }, [user?.id, user?.workspaceId]);
 
   useEffect(() => {
     document.title = 'Salesdig — Company Intelligence for Sales';
@@ -317,7 +318,7 @@ const App: React.FC = () => {
               stepTimer={analysisStepTimer}
             />} />
             <Route path="/targets" element={<TargetsView />} />
-            <Route path="/targets/:id" element={<TargetDetailView />} />
+            <Route path="/targets/:id" element={<TargetDetailView key={`${user?.id}:${user?.workspaceId}:${accountChatId}`} />} />
             <Route path="/services" element={<ServicesView companyName={workspaceSettings?.companyName} services={workspaceSettings?.salesServices} showDefaultCatalog={workspaceSettings?.companyName === 'Workmates'} />} />
             <Route path="/library" element={!workspaceSettingsLoaded
               ? <div className="flex min-h-[60vh] items-center justify-center" role="status" aria-label="Loading workspace settings"><div className="h-8 w-8 animate-spin rounded-full border-b-2 border-teal-600" /></div>
@@ -336,7 +337,7 @@ const App: React.FC = () => {
           </Routes>
         </main>
       </div>
-      <ChatPanel primaryColor={primaryColor} />
+      <ChatPanel key={`${user?.id}:${user?.workspaceId}:${accountChatId || 'global'}`} primaryColor={primaryColor} accountId={accountChatId} />
     </div>
   );
 };

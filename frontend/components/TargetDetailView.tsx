@@ -12,6 +12,7 @@ import {
 import { ResearchEvidenceView } from './ResearchEvidenceView';
 import { TargetIntelligenceView } from './TargetIntelligenceView';
 import { OpportunityMapView } from './OpportunityMapView';
+import { SalesPreparationView } from './SalesPreparationView';
 
 const message = (error: any, fallback: string) => error.response?.data?.message || fallback;
 const domain = (value: string) => {
@@ -68,6 +69,20 @@ export const TargetDetailView: React.FC = () => {
   };
 
   useEffect(() => { void load(); }, [id]);
+  useEffect(() => {
+    if (!['queued','running'].includes(opportunities?.latestAttempt?.status || '')) return;
+    let active = true;
+    const timer = window.setInterval(async () => {
+      try {
+        const { data } = await getTargetOpportunities(id);
+        if (!active) return;
+        setOpportunities(data);
+        if (data.latestAttempt?.status === 'completed') setNotice('Offering matches ready. Select an opportunity in Sales preparation.');
+        if (data.latestAttempt?.status === 'failed') setError(data.latestAttempt.error || 'Offering matching failed. Try again.');
+      } catch (caught: any) { if (active) setError(message(caught,'Could not refresh offering matches.')); }
+    }, 3000);
+    return () => { active = false; window.clearInterval(timer); };
+  }, [id,opportunities?.latestAttempt?.id,opportunities?.latestAttempt?.status]);
 
   useEffect(() => {
     const active = runs.find(item => item.status === 'queued' || item.status === 'running');
@@ -129,7 +144,7 @@ export const TargetDetailView: React.FC = () => {
 
   const match = async () => {
     setBusy(true); setError(''); setNotice('Matching approved offerings to research evidence.');
-    try { await matchTargetOpportunities(id); setTimeout(() => void getTargetOpportunities(id).then(response => setOpportunities(response.data)), 700); setNotice('Offering matching queued. Refresh this account shortly for results.'); }
+    try { await matchTargetOpportunities(id); setOpportunities((await getTargetOpportunities(id)).data); setNotice('Offering matching queued. Results will update here.'); }
     catch (caught: any) { setError(message(caught, 'Could not match offerings.')); }
     finally { setBusy(false); }
   };
@@ -194,6 +209,7 @@ export const TargetDetailView: React.FC = () => {
     <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div className="mb-3 flex items-center justify-between"><h2 className="text-lg font-bold text-slate-900">Sources and claims</h2><button onClick={() => void showEvidence()} className="text-xs font-bold text-teal-700">Latest successful</button></div><ResearchEvidenceView evidence={evidence} loading={evidenceLoading} /></section>
     <TargetIntelligenceView intelligence={intelligence} evidence={evidence} loading={intelligenceLoading} />
     <OpportunityMapView result={opportunities} loading={opportunitiesLoading} />
+    <SalesPreparationView key={id} accountId={id} archived={!!account.archivedAt} result={opportunities} />
     {candidates.length > 0 && !account.archivedAt && <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><h2 className="text-lg font-bold text-slate-900">Link older reports</h2><p className="mt-1 text-sm text-slate-500">Only your existing reports with this exact domain can be linked. Nothing is linked automatically.</p>
       <div className="mt-3 space-y-2">{candidates.map(report => <div key={report._id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 p-3 text-sm"><span>{report.customerName} · {new Date(report.createdAt).toLocaleDateString()}</span><button disabled={busy} onClick={() => void link(report._id)} className="font-bold text-teal-700 disabled:opacity-50">Link report</button></div>)}</div></section>}
   </div>;

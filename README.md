@@ -98,6 +98,16 @@ From a researched target account, select **Match offerings**. Salesdig compares 
 
 Additive migration `004_target_accounts.sql` runs after the seller-document migration. It adds account records and optional account references to runs and reports; existing references remain `NULL`. Back up shared databases before startup. A forward fix or backup restore is needed if a migration fails; removing the new table or columns would discard account links.
 
+## Sales copilot
+
+On a researched target account, match approved offerings and select an opportunity in **Sales preparation**. Create a saved 30-second or longer pitch, cold-email draft, discovery questions, meeting brief, objection responses, or engagement roadmap. Preparation uses evidence-based templates, with no paid model call. Needs remain discovery questions; drafts never send messages. Your drafts are private to you, editable with optimistic revision checks, and retain the original research, offering version, and source excerpts after refreshes or edits. Manual edits are unverified.
+
+Open **Ask Salesdig** on an account page for account-specific chat. Its bounded context uses that account's latest completed research, approved active offerings, compatible offering matches, and notes. Evidence supplied to each answer is inspectable. Missing evidence produces a clear response without a provider call. Global V1 report chat and history remain separate. Account/user/workspace changes reset the chat panel.
+
+The Analysis dashboard shows saved workspace account, research, and opportunity totals plus your draft count. **Export account with evidence** downloads JSON containing available intelligence, source dates/excerpts, uncertainty, score breakdowns, and your saved drafts. Existing report PDF export remains available.
+
+Migrations `008_account_chat.sql` and `009_sales_preparation.sql` run automatically after `001`–`007` on backend startup. For Neon, retain the existing `DATABASE_URL`; back up or create a Neon test branch before applying migrations to a shared database. No new configuration is required. See [migration handoff](docs/POSTGRES_MIGRATION_HANDOFF.md) for recovery limitations.
+
 ## WSL with Windows PostgreSQL
 
 When Node runs in WSL and PostgreSQL runs on Windows, `localhost` in `DATABASE_URL` points to WSL. Set its host to the Windows host address shown by `ip route` (the default route). When opening a WSL-hosted frontend from Windows, start Vite with `npm run dev -- --host 0.0.0.0`, then open the WSL IP shown by `hostname -I`. Set `VITE_BACKEND_URL` and `FRONTEND_URL` to matching reachable addresses. WSL addresses can change after a restart.

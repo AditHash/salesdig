@@ -121,9 +121,11 @@ test("queued account research stores evidence and preserves workspace boundaries
   await postgres.query("INSERT INTO seller_offering_versions (workspace_id,offering_id,version,snapshot,changed_by) VALUES ($1,$2,1,$3::jsonb,$4)", [workspaces[0], offeringId, JSON.stringify({ name: "Cloud application consulting" }), users[0]]);
   const match = await request(`/targets/${id}/opportunities`, users[0], "POST");
   assert.equal(match.status, 202);
+  assert.equal((await request(`/targets/${id}/opportunities`, users[0])).data.latestAttempt.status, 'queued');
   assert.equal(await processNextOpportunityMatching(), true);
   const opportunities = await request(`/targets/${id}/opportunities`, users[0]);
   assert.equal(opportunities.status, 200);
+  assert.equal(opportunities.data.latestAttempt.status, 'completed');
   assert.equal(opportunities.data.opportunities.length, 1);
   assert.equal(opportunities.data.opportunities[0].evidence.length, 1);
   assert.equal((await request(`/targets/${id}/opportunities`, users[1])).status, 404);

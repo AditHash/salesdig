@@ -1,6 +1,6 @@
 # Salesdig V2 implementation plan
 
-Status: Step 0 and Steps 1–5 implemented locally; Step 6 remains planned.
+Status: Steps 0–6 implemented and verified with disposable PostgreSQL and mocked providers. Neon migrations and live Gemini checks remain unexecuted.
 
 ## Goal and working agreement
 
@@ -234,27 +234,29 @@ Start with the proposed rubric, subject to a documented product decision:
 
 ### 6.1 Pitch and discovery preparation
 
-- [ ] Generate a 30-second pitch, longer pitch, cold-email draft, discovery questions, and meeting-preparation brief from selected opportunities.
-- [ ] Add objection-handling suggestions and a recommended engagement roadmap.
-- [ ] Retain source and version references even when citations are kept outside customer-facing draft copy.
-- [ ] Frame uncertain pains as discovery questions; never invent customer problems, budgets, commitments, or seller achievements.
-- [ ] Let reps edit and save drafts. Draft creation does not send email or messages.
+- [x] Generate a 30-second pitch, longer pitch, cold-email draft, discovery questions, and meeting-preparation brief from selected opportunities.
+- [x] Add objection-handling suggestions and a recommended engagement roadmap.
+- [x] Retain source and version references even when citations are kept outside customer-facing draft copy.
+- [x] Frame uncertain pains as discovery questions; never invent customer problems, budgets, commitments, or seller achievements.
+- [x] Let reps edit and save drafts. Draft creation does not send email or messages.
 
 ### 6.2 Account-aware chat
 
 **How:** extend current chat/RAG rather than replacing it. Bind conversations to workspace and account. Retrieve approved seller knowledge plus the selected target's sources, findings, opportunities, and permitted notes.
 
-- [ ] Apply workspace/account/version filters inside retrieval queries before ranking/limiting.
-- [ ] Clear stale context on workspace/account switching.
-- [ ] Provide inspectable evidence and admit when research cannot answer a question.
-- [ ] Protect against document/page instructions attempting to override tenant context or application policy.
-- [ ] Preserve existing V1 report-chat access and behavior through compatible routing/context handling.
+- [x] Apply workspace/account/version filters inside retrieval queries before ranking/limiting.
+- [x] Clear stale context on workspace/account switching.
+- [x] Provide inspectable evidence and admit when research cannot answer a question.
+- [x] Protect against document/page instructions attempting to override tenant context or application policy.
+- [x] Preserve existing V1 report-chat access and behavior through compatible routing/context handling.
+
+Preparation uses deterministic evidence templates rather than model-generated claims. Account chat separates provider policy from untrusted JSON, bounds context, validates claim citation IDs, and gives the provider no tools or tenant selectors. Tests exercise policy/context boundaries with mocked providers; real Gemini adherence remains unverified.
 
 ### 6.3 Complete the integrated user journey
 
-- [ ] Update the dashboard with real account/research/opportunity aggregates.
-- [ ] Link account intelligence, opportunity map, sales plays, meeting preparation, and chat coherently.
-- [ ] Support export of available findings with provenance and uncertainty intact.
+- [x] Update the dashboard with real account/research/opportunity aggregates.
+- [x] Link account intelligence, opportunity map, sales plays, meeting preparation, and chat coherently.
+- [x] Support export of available findings with provenance and uncertainty intact.
 
 **Acceptance criteria:** a user can complete onboarding → add target → research → inspect evidence → select opportunity → prepare pitch/questions → ask account chat. V1 flows still work; drafts remain drafts; account context and retrieval remain isolated.
 
@@ -294,15 +296,15 @@ For each slice:
 
 ## V2 release gate
 
-- [ ] Requested V2 milestones are complete; unfinished future functionality is not presented as available.
-- [ ] Migrations have been exercised against representative V1 data on an isolated database.
-- [ ] Relevant V1 auth/workspace/research/report/export/chat journeys still pass.
-- [ ] Workspace boundaries cover APIs, workers, storage, caches, retrieval, exports, and progress access.
-- [ ] Evidence, unsupported claims, freshness, and scoring explanations are inspectable.
-- [ ] Invalid model output and worker/provider failures have controlled user-visible behavior.
-- [ ] Research has bounded time, page/model usage, retries, and cost visibility where providers expose usage.
-- [ ] Configuration and operational recovery instructions are documented.
-- [ ] Executed checks and remaining verification gaps are recorded honestly.
+- [x] Requested V2 milestones are complete; unfinished future functionality is not presented as available.
+- [x] Migrations have been exercised against representative V1 data on an isolated database.
+- [x] Relevant V1 auth/workspace/research/report/export/chat journeys still pass with controlled fixtures and mocked providers.
+- [x] Workspace boundaries cover affected APIs, workers, storage, retrieval, exports, and progress access; isolation checks use separate workspaces.
+- [x] Evidence, unsupported claims, freshness, and scoring explanations are inspectable.
+- [x] Invalid model output and worker/provider failures have controlled user-visible behavior under mocked-provider checks.
+- [x] Research has bounded time, page/model usage, retries, and cost visibility where providers expose usage.
+- [x] Configuration and operational recovery instructions are documented.
+- [x] Executed checks and remaining verification gaps are recorded honestly.
 
 Publishing/deploying is a separate authorized action. Completion of this release gate alone does not authorize production deployment.
 
@@ -339,3 +341,5 @@ When a slice is completed, add a dated entry identifying the code revision if av
 **2026-10-07 — Step 1.3:** Added `003_seller_documents.sql`, bounded UTF-8 text/Markdown upload, versioned PostgreSQL storage and pgvector chunks, queued extraction worker, validated excerpt-backed suggestions, and admin review into draft catalog entries. Replacement/deletion removes chunks and retires unchanged document-backed catalog entries. Both builds and 11 backend tests passed against an isolated local PostgreSQL database, including two-workspace authorization, invalid evidence, retry, replacement, and deletion. A Chromium walkthrough passed upload → process → review → accept as draft. Gemini extraction and Neon production migration were not exercised; tests used mock providers and no production data was changed.
 
 **2026-10-07 — Step 2:** Added `004_target_accounts.sql`, scoped target account APIs and screens, owner checks, duplicate handling, account research adapter, history, and explicit same-domain linking for owned V1 reports. Isolated PostgreSQL tests cover two workspaces, forged claims, archive/history, duplicate active jobs, failed provider calls without paid usage, and composite foreign keys. Browser walkthrough passed create → edit → link older report → archive. A separate isolated database seeded under V1 was upgraded through migrations 001–004; its user, run, report, and null account references remained intact. Backend/frontend builds passed. Live Gemini research completion and Neon/production migration were not exercised.
+
+**2026-10-08 — Step 6:** Completed account chat and migrations `008_account_chat.sql` / `009_sales_preparation.sql`; added seven author-private evidence-template drafts, source/version snapshots, edit revisions, real workspace totals, and account JSON export. Offering matching polls completion and displays historical offering-version names. Backend suite passed 26 tests on disposable local PostgreSQL 16.15 with pgvector, including V1 regression, tenant-aware constraints, draft privacy/revision conflicts, research refresh, revoked offering approval, invalid citations, and pre-migration chat preservation. Both builds passed; Chromium passed draft create/edit/save, evidence, account chat/switching, empty-evidence response, dashboard and export API. Providers were mocked. Neon remains configured and untouched; live Gemini answers, Neon connectivity and shared-database migration remain unverified. User requested commit/push this phase to `v2`, then stop. No later phase or deployment is authorized.

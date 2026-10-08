@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { AccountDashboard } from './AccountDashboard';
 import { Building2, Globe, Zap, Loader2, RefreshCw, Sparkles } from 'lucide-react';
 import { runAnalysis } from '../services/analysis.service';
 import { RunAnalysisResponse, ReportData } from '../types';
@@ -81,6 +82,7 @@ export const AnalysisView: React.FC<Props> = ({
 
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+      <AccountDashboard />
 
       {/* Input card */}
       {!report && (

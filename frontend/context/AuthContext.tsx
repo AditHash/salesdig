@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { getMe } from "../services/auth.service";
 
 interface User {
+    workspaceId?: string;
     id: string;
     name: string;
     email: string;

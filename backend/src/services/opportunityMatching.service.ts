@@ -108,13 +108,15 @@ export const processNextOpportunityMatching = async (): Promise<boolean> => {
 };
 
 export const readLatestOpportunities = async (workspaceId: string, accountId: string) => {
+  const attempt = await postgres.query<Row>('SELECT id,status,error,created_at FROM opportunity_sets WHERE workspace_id=$1 AND account_id=$2 ORDER BY created_at DESC,id DESC LIMIT 1', [workspaceId,accountId]);
+  const latestAttempt = mapDbRow(attempt.rows[0]);
   const set = await postgres.query<Row>("SELECT * FROM opportunity_sets WHERE workspace_id=$1 AND account_id=$2 AND status='completed' ORDER BY ended_at DESC,id DESC LIMIT 1", [workspaceId, accountId]);
-  if (!set.rows[0]) return { set: null, opportunities: [] };
-  const opportunities = await postgres.query<Row>(`SELECT o.*, so.name AS offering_name, COALESCE(jsonb_agg(jsonb_build_object('claimId',c.id,'statement',c.statement)) FILTER (WHERE c.id IS NOT NULL),'[]'::jsonb) AS evidence
-    FROM opportunities o JOIN seller_offerings so ON so.workspace_id=o.workspace_id AND so.id=o.offering_id
+  if (!set.rows[0]) return { set: null, opportunities: [], latestAttempt };
+  const opportunities = await postgres.query<Row>(`SELECT o.*, COALESCE(so.snapshot->>'name','Historical offering') AS offering_name, COALESCE(jsonb_agg(jsonb_build_object('claimId',c.id,'statement',c.statement)) FILTER (WHERE c.id IS NOT NULL),'[]'::jsonb) AS evidence
+    FROM opportunities o JOIN seller_offering_versions so ON so.workspace_id=o.workspace_id AND so.offering_id=o.offering_id AND so.version=o.offering_version
     LEFT JOIN opportunity_evidence oe ON oe.opportunity_id=o.id LEFT JOIN research_claims c ON c.id=oe.claim_id AND c.workspace_id=oe.workspace_id AND c.account_id=oe.account_id AND c.run_id=oe.run_id
-    WHERE o.workspace_id=$1 AND o.account_id=$2 AND o.set_id=$3 GROUP BY o.id,so.name ORDER BY o.score DESC,o.id`, [workspaceId, accountId, set.rows[0].id]);
-  return { set: mapDbRow(set.rows[0]), opportunities: mapDbRows(opportunities.rows) };
+    WHERE o.workspace_id=$1 AND o.account_id=$2 AND o.set_id=$3 GROUP BY o.id,so.snapshot ORDER BY o.score DESC,o.id`, [workspaceId, accountId, set.rows[0].id]);
+  return { set: mapDbRow(set.rows[0]), opportunities: mapDbRows(opportunities.rows), latestAttempt };
 };
 
 export const startOpportunityMatchingWorker = (): void => { let active=false; const tick=async()=>{ if(active)return; active=true; try { await processNextOpportunityMatching(); } finally { active=false; } }; void tick(); setInterval(()=>void tick(),5000).unref(); };

@@ -75,6 +75,7 @@ export interface TargetIntelligence {
   gaps: Array<{ id: string; claimId: string; statement: string; certainty: 'likely' | 'unknown'; rationale: string }>;
 }
 export interface OpportunityResult {
+  latestAttempt?: { id: string; status: string; error: string | null } | null;
   set: { id: string; status: string; resultReason: string | null; scoringVersion: string; createdAt: string } | null;
   opportunities: Array<{ id: string; offeringName: string; title: string; targetNeed: string; needKind: 'confirmed_need' | 'discovery_hypothesis'; rationale: string; uncertainties: string[]; whyNow: string; entryAction: string; score: number; coverage: number; evidenceConfidence: 'low' | 'medium' | 'high'; scoreBreakdown: Record<string, { weight: number; value: number | null; contribution: number | null; reason: string }>; evidence: Array<{ claimId: string; statement: string }> }>;
 }

@@ -2,39 +2,33 @@
 
 Updated: 2026-10-08. Work from branch `v2`.
 
-## Committed baseline
+## Completed phase
 
-V2 Steps 0–5 are committed locally. The latest commits are `96f3e5d` (evidence-backed opportunity matching) and `3678f2a` (documentation). The branch is seven commits ahead of `origin/v2`; nothing was pushed during the V2 task.
+Steps 0–6 are implemented: seller profile/catalog/documents, persistent targets, durable evidence research, intelligence, opportunity matching, and sales copilot. Read [baseline](V2_BASELINE.md), [migration handoff](POSTGRES_MIGRATION_HANDOFF.md), and `plan.md` for contracts and limits.
 
-Completed slices: workspace seller profile, approved seller catalog, reviewed seller documents, target accounts, durable evidence research, target intelligence, and opportunity matching. Read [V2 baseline](V2_BASELINE.md), [migration handoff](POSTGRES_MIGRATION_HANDOFF.md), and `plan.md` before editing.
+The partial account-chat work was reviewed and completed. `008_account_chat.sql` preserves V1 global sessions and adds scoped account sessions and supplied-context references. Account mode uses bounded latest-run claims/excerpts, approved active offerings, compatible matches, and notes. Unsupported claim citation IDs are rejected. Account/user/workspace changes remount private state. Global report retrieval and follow-up rewriting remain compatible. Empty evidence skips the provider.
 
-## Verification already run
+`009_sales_preparation.sql` adds author-private drafts, immutable source snapshots and edit revision history. Seven deterministic evidence-template types cover short/long pitches, unsent cold email, discovery questions, meeting briefs, objection responses and engagement roadmaps. New drafts require an unchanged approved active offering; existing snapshots remain readable after research refreshes or offering changes. User edits are unverified.
 
-On the isolated database URL ending `salesdig_v2_step11_test`, backend `npm test` passed: 21 tests, including V1 regression, workspace isolation, research retry, evidence, intelligence, and matching coverage. Backend and frontend `npm run build` also passed. No shared Neon data or paid Gemini calls were used for those checks.
+Account export downloads JSON with available intelligence, source dates/excerpts, uncertainty, score breakdowns and the author's drafts. V1 PDF export remains available. Analysis shows real workspace totals. Matching progress polls automatically; historical offering names come from saved version snapshots.
 
-## Uncommitted Step 6 work
+## Verification
 
-Do not treat the following as complete or publish it without review. These files contain a partial account-chat slice:
+Backend integration suite passed on disposable local PostgreSQL 16.15 with pgvector: V1 regressions, workspace isolation, draft privacy/revisions, cross-tenant foreign keys, account/global chat separation, source snapshot refresh, revoked offering approval, invalid citations, and pre-migration V1 chat preservation. Both package builds passed. Chromium walkthrough passed draft create/edit/save, evidence inspection, account chat/switching, empty-evidence response, dashboard and export API. Research/chat providers were mocked; PostgreSQL was real.
 
-- `backend/migrations/008_account_chat.sql`
-- `backend/src/controllers/chat.controller.ts`
-- `frontend/App.tsx`
-- `frontend/components/ChatPanel.tsx`
-- `frontend/services/chat.service.ts`
+Neon remains the app database; its configured host failed DNS during a read-only test-database check. No shared Neon migration, paid Gemini call, deployment or outreach occurred. No provider/stack/dependency switch was introduced. Live Gemini answers and Neon startup remain unverified.
 
-Intent: separate global and account-specific chat sessions, scope a selected account’s claims/opportunities by workspace and account, and reset chat history when the target route changes. The migration drops the old single-session-per-user constraint and adds nullable `account_id` to `chat_sessions`.
+## Migration and runtime
 
-Before continuing, review the SQL compatibility on isolated PostgreSQL, add authorization and regression tests, bound account context size, retain inspectable claim/source references, and test global V1 chat unchanged. Then finish Step 6.1 saved pitch/discovery drafts and Step 6.3 journey/dashboard/export work. Do not mark Step 6 checkboxes complete yet.
-
-## Working tree protection
-
-Leave these unrelated user changes untouched: `AGENTS.md`, `frontend/package-lock.json`, `AGENTS.md:Zone.Identifier`, `package-lock.json`, and `plan.md:Zone.Identifier`.
-
-## Start commands
+Keep `DATABASE_URL`, `JWT_SECRET`, and `GEMINI_API_KEY` in untracked `backend/.env`. No new configuration is required. Startup applies migrations 001–009 transactionally. Back up or use an isolated Neon branch before starting the updated backend against shared data. Recovery limits are documented in the migration handoff.
 
 ```bash
 cd backend && npm run dev
 cd frontend && npm run dev
 ```
 
-Use `backend/.env` for `DATABASE_URL`, `JWT_SECRET`, and `GEMINI_API_KEY`; keep it untracked. Run migrations only through backend startup, first against an isolated PostgreSQL database. Do not deploy, push, or modify shared Neon data without an explicit new instruction.
+## Working tree and stopping point
+
+Preserve unrelated user files: `AGENTS.md`, `frontend/package-lock.json`, `AGENTS.md:Zone.Identifier`, root `package-lock.json`, and `plan.md:Zone.Identifier`. They are excluded from this phase's commit.
+
+The user explicitly authorized committing and pushing this completed phase to `origin/v2`, then stopping. Do not start another phase, deploy, or modify shared Neon data under this task.

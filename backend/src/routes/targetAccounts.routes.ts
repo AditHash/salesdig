@@ -1,4 +1,5 @@
 import express from "express";
+import { readDashboard, readDrafts, generateDraft, updateDraft, exportAccount } from '../controllers/salesPreparation.controller.js';
 import isAuth from "../middlewares/isAuth.js";
 import {
   createTarget, linkTargetReport, listTargets, patchTarget,
@@ -9,11 +10,16 @@ import {
 
 const router = express.Router();
 router.use(isAuth);
+router.get('/dashboard', readDashboard);
 router.get("/", listTargets);
 router.post("/", createTarget);
 router.get("/:id", readTarget);
 router.patch("/:id", patchTarget);
 router.get("/:id/history", readTargetHistory);
+router.get('/:id/drafts', readDrafts);
+router.post('/:id/drafts', generateDraft);
+router.patch('/:id/drafts/:draftId', updateDraft);
+router.get('/:id/export', exportAccount);
 router.post("/:id/research", researchTarget);
 router.get("/:id/intelligence", readTargetIntelligence);
 router.post("/:id/opportunities", matchTargetOpportunities);

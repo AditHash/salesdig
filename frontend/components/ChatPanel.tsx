@@ -11,7 +11,7 @@ const SUGGESTIONS = [
   'Who are the key decision makers?',
 ];
 
-export const ChatPanel: React.FC<{ primaryColor?: string }> = ({ primaryColor = '#0f766e' }) => {
+export const ChatPanel: React.FC<{ primaryColor?: string; accountId?: string }> = ({ primaryColor = '#0f766e', accountId }) => {
   const welcome = useMemo<ChatMessage>(() => ({
     role: 'assistant',
     content: `👋 Hi! I'm your **Salesdig research assistant**.\n\nI can answer questions grounded in your saved company research, including technology, opportunities, decision makers, and recommendations.\n\nWhat would you like to know?`,
@@ -37,6 +37,8 @@ export const ChatPanel: React.FC<{ primaryColor?: string }> = ({ primaryColor = 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const shouldScrollRef = useRef(false);
+  const mounted = useRef(true);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
 
   // Drag handlers
   const onMouseDown = (e: React.MouseEvent) => {
@@ -68,15 +70,20 @@ export const ChatPanel: React.FC<{ primaryColor?: string }> = ({ primaryColor = 
     if (!open) return;
     if (hasHistory) return;
     setLoadingHistory(true);
-    getChatHistory()
+    let active = true;
+    getChatHistory(accountId)
       .then(r => {
+        if (!active) return;
         const msgs = r.data.messages;
         setMessages(msgs.length > 0 ? msgs : [welcome]);
         setHasHistory(true);
       })
-      .catch(() => setMessages([welcome]))
-      .finally(() => setLoadingHistory(false));
-  }, [open, hasHistory, welcome]);
+      .catch(() => { if (active) setMessages([{ ...welcome, content: 'Could not load chat history. Close and reopen to retry.' }]); })
+      .finally(() => { if (active) setLoadingHistory(false); });
+    return () => { active = false; };
+  }, [open, hasHistory, welcome, accountId]);
+
+  useEffect(() => { setHasHistory(false); setMessages([]); }, [accountId]);
 
   useEffect(() => {
     if (shouldScrollRef.current) {
@@ -97,15 +104,18 @@ export const ChatPanel: React.FC<{ primaryColor?: string }> = ({ primaryColor = 
     setMessages(prev => [...prev, { role: 'user', content: msg, createdAt: new Date().toISOString() }]);
     setLoading(true);
     try {
-      const res = await sendMessage(msg);
+      const res = await sendMessage(msg, accountId);
+      if (!mounted.current) return;
       const { reply, usedReports } = res.data;
       setMessages(prev => [...prev, {
         role: 'assistant',
         content: reply,
         createdAt: new Date().toISOString(),
-        usedReportIds: usedReports.map((r: ChatUsedReport) => r.id)
+        usedReportIds: usedReports.map((r: ChatUsedReport) => r.id),
+        contextReferences: res.data.contextReferences
       }]);
     } catch (err: any) {
+      if (!mounted.current) return;
       console.error('[chat]', err);
       setMessages(prev => [...prev, {
         role: 'assistant',
@@ -113,14 +123,18 @@ export const ChatPanel: React.FC<{ primaryColor?: string }> = ({ primaryColor = 
         createdAt: new Date().toISOString()
       }]);
     } finally {
-      setLoading(false);
+      if (mounted.current) setLoading(false);
     }
   };
 
   const handleClear = async () => {
-    await clearChatHistory().catch(() => {});
-    setMessages([welcome]);
-    setShowClearConfirm(false);
+    try {
+      await clearChatHistory(accountId);
+      if (!mounted.current) return;
+      setMessages([welcome]); setShowClearConfirm(false);
+    } catch {
+      if (mounted.current) setMessages(prev => [...prev, { role: 'assistant', content: 'History could not be cleared. Try again.', createdAt: new Date().toISOString() }]);
+    }
   };
 
   const handleFabClick = () => {
@@ -183,7 +197,7 @@ export const ChatPanel: React.FC<{ primaryColor?: string }> = ({ primaryColor = 
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-sm leading-tight">Salesdig Research Assistant</p>
-              <p className="text-xs opacity-70 leading-tight">Ask me about your companies</p>
+              <p className="text-xs opacity-70 leading-tight">{accountId ? 'Selected account · cited research' : 'Your saved company reports'}</p>
             </div>
             <button
               onClick={() => setShowClearConfirm(true)}
@@ -246,6 +260,9 @@ export const ChatPanel: React.FC<{ primaryColor?: string }> = ({ primaryColor = 
                           {m.content}
                         </ReactMarkdown>
                       )}
+                      {!!m.contextReferences?.length && <details className="mt-3 border-t border-slate-200 pt-2 text-xs"><summary className="cursor-pointer font-semibold">Evidence supplied to this answer ({m.contextReferences.length})</summary>
+                        {m.contextReferences.map((r, i) => <div key={`${r.sourceId}:${i}`} className="mt-2"><a href={/^https?:\/\//i.test(r.url) ? r.url : undefined} target="_blank" rel="noreferrer" className="text-teal-700 underline">{r.title || r.url}</a><p>{r.classification} · {r.certainty} · claim {r.claimId}</p><blockquote className="mt-1">{r.excerpt}</blockquote><p>Retrieved {new Date(r.retrievedAt).toLocaleDateString()} · Published {r.publishedAt ? new Date(r.publishedAt).toLocaleDateString() : 'unknown'}</p></div>)}
+                      </details>}
                     </div>
                   </div>
                 ))}
