@@ -1,6 +1,6 @@
 # PostgreSQL Migration Handoff
 
-Updated: 2026-09-30
+Updated: 2026-10-08
 
 ## Completed
 
@@ -9,6 +9,7 @@ Updated: 2026-09-30
 - Mongoose, MongoDB runtime configuration, and the legacy Mongo import tool are removed. There is no MongoDB data to migrate.
 - Workmates remains the default workspace configuration; new companies can create isolated workspaces and customize their settings.
 - `backend/.env.example` lists the current environment variables.
+- Additive migrations `001`–`007` add seller profiles, catalog data, seller documents, target accounts, evidence-backed research, target intelligence, and opportunity matching. They run automatically on backend startup through `schema_migrations`.
 
 ## Run the app
 
@@ -19,4 +20,8 @@ Updated: 2026-09-30
 
 ## Validation
 
-Frontend and backend production builds pass. A live PostgreSQL instance was not available in the implementation environment, so verify startup and core flows against the configured database before deployment. Use `npm run backfill:embeddings` only if existing PostgreSQL reports need their vectors rebuilt.
+Frontend and backend production builds pass. The V2 migration and authorization flows were exercised against an isolated PostgreSQL database whose name ends in `_test`; no shared Neon data was changed. Before using a shared Neon database, take a backup and start the backend once to apply pending additive migrations. Use `npm run backfill:embeddings` only if existing PostgreSQL reports need their vectors rebuilt.
+
+## Migration recovery
+
+Migrations execute under a transaction and advisory lock. A failed migration rolls back and prevents backend startup. Correct the migration or apply a forward fix, then restart. Do not edit a migration already recorded in `schema_migrations`; add a new numbered migration. `007_opportunity_matching.sql` is additive and preserves historical reports, research runs, and seller-offering versions. Removing its tables would discard V2 match history.
