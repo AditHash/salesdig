@@ -5,11 +5,12 @@ import { useAuth } from '../context/AuthContext';
 import { getMyReports } from '../services/analysis.service';
 import { SavedReport } from '../types';
 import {
-  getLatestTargetEvidence, getTarget, getTargetEvidence, getTargetHistory, getTargetResearchRun,
+  getLatestTargetEvidence, getTarget, getTargetEvidence, getTargetHistory, getTargetIntelligence, getTargetResearchRun,
   linkTargetReport, researchTarget, retryTargetResearch, updateTarget,
-  type ResearchEvidence, type TargetAccount, type TargetReport, type TargetRun
+  type ResearchEvidence, type TargetAccount, type TargetIntelligence, type TargetReport, type TargetRun
 } from '../services/targets.service';
 import { ResearchEvidenceView } from './ResearchEvidenceView';
+import { TargetIntelligenceView } from './TargetIntelligenceView';
 
 const message = (error: any, fallback: string) => error.response?.data?.message || fallback;
 const domain = (value: string) => {
@@ -26,6 +27,8 @@ export const TargetDetailView: React.FC = () => {
   const [runs, setRuns] = useState<TargetRun[]>([]);
   const [evidence, setEvidence] = useState<ResearchEvidence | null>(null);
   const [evidenceLoading, setEvidenceLoading] = useState(true);
+  const [intelligence, setIntelligence] = useState<TargetIntelligence | null>(null);
+  const [intelligenceLoading, setIntelligenceLoading] = useState(true);
   const [legacy, setLegacy] = useState<SavedReport[]>([]);
   const [draft, setDraft] = useState({ name: '', website: '', industry: '', geography: '', targetingReason: '', notes: '', tags: '' });
   const [loading, setLoading] = useState(true);
@@ -49,6 +52,10 @@ export const TargetDetailView: React.FC = () => {
       try { setEvidence((await getLatestTargetEvidence(id)).data); }
       catch { setEvidence(null); }
       finally { setEvidenceLoading(false); }
+      setIntelligenceLoading(true);
+      try { setIntelligence((await getTargetIntelligence(id)).data); }
+      catch { setIntelligence(null); }
+      finally { setIntelligenceLoading(false); }
     } catch (caught: any) { setError(message(caught, 'Could not load account.')); }
     finally { setLoading(false); }
   };
@@ -65,6 +72,7 @@ export const TargetDetailView: React.FC = () => {
         if (data.status === 'completed' || data.status === 'failed') {
           await refreshHistory();
           setEvidence((await getLatestTargetEvidence(id)).data);
+          setIntelligence((await getTargetIntelligence(id)).data);
           setNotice(data.status === 'completed' ? 'Research complete. Evidence and report are ready.' : 'Research failed. See run status and retry if available.');
         }
       } catch (caught: any) { setError(message(caught, 'Could not refresh research status.')); }
@@ -170,6 +178,7 @@ export const TargetDetailView: React.FC = () => {
       </section>
     </div>
     <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div className="mb-3 flex items-center justify-between"><h2 className="text-lg font-bold text-slate-900">Sources and claims</h2><button onClick={() => void showEvidence()} className="text-xs font-bold text-teal-700">Latest successful</button></div><ResearchEvidenceView evidence={evidence} loading={evidenceLoading} /></section>
+    <TargetIntelligenceView intelligence={intelligence} evidence={evidence} loading={intelligenceLoading} />
     {candidates.length > 0 && !account.archivedAt && <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><h2 className="text-lg font-bold text-slate-900">Link older reports</h2><p className="mt-1 text-sm text-slate-500">Only your existing reports with this exact domain can be linked. Nothing is linked automatically.</p>
       <div className="mt-3 space-y-2">{candidates.map(report => <div key={report._id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 p-3 text-sm"><span>{report.customerName} · {new Date(report.createdAt).toLocaleDateString()}</span><button disabled={busy} onClick={() => void link(report._id)} className="font-bold text-teal-700 disabled:opacity-50">Link report</button></div>)}</div></section>}
   </div>;

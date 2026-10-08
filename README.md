@@ -90,6 +90,8 @@ The **Target accounts** page stores prospects per workspace. Any member can crea
 
 Research from an account creates a durable background run and returns immediately. The account page polls authorized run status and shows collected source excerpts and labelled facts, inferences, or recommendations. Source fetching is bounded and rejects private-network destinations; incomplete runs keep their partial evidence and can be retried. A completed evidence-backed run publishes a new report without overwriting older reports. Report access remains under existing V1 owner/admin rules. Users can explicitly link their own older reports only when the report domain matches the account domain. No historical report is linked automatically. Archived accounts keep their linked history, but cannot start new research until restored.
 
+Completed evidence-backed research also builds account intelligence from its validated claims: an overview, Tech DNA, sourced stakeholders, discrete buying signals, and evidence-backed gap hypotheses. Each item links back to its source claim. Technology inferred from a hiring post stays **likely** rather than confirmed production usage; unknown information and unsourced contact details remain unknown. Gap hypotheses are discovery questions, never statements based only on missing public information.
+
 Additive migration `004_target_accounts.sql` runs after the seller-document migration. It adds account records and optional account references to runs and reports; existing references remain `NULL`. Back up shared databases before startup. A forward fix or backup restore is needed if a migration fails; removing the new table or columns would discard account links.
 
 ## WSL with Windows PostgreSQL

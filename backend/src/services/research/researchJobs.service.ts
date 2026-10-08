@@ -3,14 +3,16 @@ import { postgres } from "../../config/postgres.js";
 import { mapDbRow, mapDbRows } from "../../utils/dbRows.js";
 import { RESEARCH_MODEL, RESEARCH_PROMPT_VERSION, discoverSourceUrls, extractClaims,
   type ProviderUsage, type ResearchClaim, type ResearchSource } from "./evidenceExtraction.service.js";
+import { extractTargetIntelligence, type IntelligenceClaim, type TargetIntelligence } from "./intelligenceExtraction.service.js";
 import { fetchPublicSource, type FetchedSource, SourceFetchError } from "./publicSourceFetch.service.js";
 
 type Providers = {
   discover: typeof discoverSourceUrls;
   fetch: typeof fetchPublicSource;
   extract: typeof extractClaims;
+  analyze: typeof extractTargetIntelligence;
 };
-const defaults: Providers = { discover: discoverSourceUrls, fetch: fetchPublicSource, extract: extractClaims };
+const defaults: Providers = { discover: discoverSourceUrls, fetch: fetchPublicSource, extract: extractClaims, analyze: extractTargetIntelligence };
 type ClaimedRun = { id: string; workspace_id: string; account_id: string; user_id: string; attempts: number; input: { customerName: string; companyDomain: string } };
 class LeaseLostError extends Error {}
 
@@ -158,6 +160,57 @@ const persistClaims = async (run: ClaimedRun, claims: ResearchClaim[]): Promise<
   } finally { client.release(); }
 };
 
+const storedClaims = async (run: ClaimedRun): Promise<IntelligenceClaim[]> => {
+  const result = await postgres.query(
+    `SELECT id, statement, classification, certainty, event_date
+     FROM research_claims WHERE workspace_id = $1 AND account_id = $2 AND run_id = $3 ORDER BY created_at, id`,
+    [run.workspace_id, run.account_id, run.id]
+  );
+  return mapDbRows<IntelligenceClaim>(result.rows);
+};
+
+const persistTargetIntelligence = async (run: ClaimedRun, intelligence: TargetIntelligence): Promise<void> => {
+  await verifyLease(run);
+  const client = await postgres.connect();
+  try {
+    await client.query("BEGIN");
+    const lock = await client.query(
+      `SELECT 1 FROM analysis_runs WHERE id = $1 AND workspace_id = $2 AND account_id = $3
+       AND status = 'running' AND attempts = $4 AND lease_expires_at > now() FOR UPDATE`,
+      [run.id, run.workspace_id, run.account_id, run.attempts]
+    );
+    if (!lock.rowCount) throw new LeaseLostError("Research lease lost");
+    for (const table of ["target_technologies", "target_people", "buying_signals", "target_gap_hypotheses"]) {
+      await client.query(`DELETE FROM ${table} WHERE workspace_id = $1 AND account_id = $2 AND run_id = $3`,
+        [run.workspace_id, run.account_id, run.id]);
+    }
+    for (const item of intelligence.technologies) await client.query(
+      `INSERT INTO target_technologies (id,workspace_id,account_id,run_id,claim_id,name,category,status,rationale,observed_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+      [crypto.randomUUID(), run.workspace_id, run.account_id, run.id, item.claimId, item.name, item.category, item.status, item.rationale, item.observedAt]
+    );
+    for (const item of intelligence.people) await client.query(
+      `INSERT INTO target_people (id,workspace_id,account_id,run_id,claim_id,name,role,buying_role,currentness,rationale)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+      [crypto.randomUUID(), run.workspace_id, run.account_id, run.id, item.claimId, item.name, item.role, item.buyingRole, item.currentness, item.rationale]
+    );
+    for (const item of intelligence.signals) await client.query(
+      `INSERT INTO buying_signals (id,workspace_id,account_id,run_id,claim_id,signal_type,strength,event_date,interpretation,fingerprint)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+      [crypto.randomUUID(), run.workspace_id, run.account_id, run.id, item.claimId, item.signalType, item.strength, item.eventDate, item.interpretation, item.fingerprint]
+    );
+    for (const item of intelligence.gaps) await client.query(
+      `INSERT INTO target_gap_hypotheses (id,workspace_id,account_id,run_id,claim_id,statement,certainty,rationale)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
+      [crypto.randomUUID(), run.workspace_id, run.account_id, run.id, item.claimId, item.statement, item.certainty, item.rationale]
+    );
+    await client.query("COMMIT");
+  } catch (error) {
+    await client.query("ROLLBACK").catch(() => undefined);
+    throw error;
+  } finally { client.release(); }
+};
+
 const publishReport = async (run: ClaimedRun, sources: ResearchSource[]): Promise<void> => {
   const client = await postgres.connect();
   try {
@@ -228,7 +281,8 @@ const failOrRetry = async (run: ClaimedRun, error: unknown): Promise<void> => {
   console.error("Account research job failed", { runId: run.id, message: safeMessage, retry });
 };
 
-export const processNextAccountResearch = async (providers: Providers = defaults): Promise<boolean> => {
+export const processNextAccountResearch = async (overrides: Partial<Providers> = {}): Promise<boolean> => {
+  const providers = { ...defaults, ...overrides };
   const run = await claimNext();
   if (!run) return false;
   try {
@@ -255,9 +309,12 @@ export const processNextAccountResearch = async (providers: Providers = defaults
     await setStage(run, "extracting");
     await verifyActor(run);
     const extracted = await providers.extract(run.input.customerName, run.input.companyDomain, sources);
-    await setStage(run, "analyzing", { extraction: extracted.usage });
     await persistClaims(run, extracted.claims);
-    await setStage(run, "generating");
+    await setStage(run, "analyzing", { extraction: extracted.usage });
+    await verifyActor(run);
+    const intelligence = await providers.analyze(run.input.customerName, await storedClaims(run));
+    await persistTargetIntelligence(run, intelligence.intelligence);
+    await setStage(run, "generating", { intelligence: intelligence.usage });
     await verifyActor(run);
     await publishReport(run, sources);
   } catch (error) {
@@ -319,6 +376,23 @@ export const readLatestResearchEvidence = async (workspaceId: string, accountId:
        COALESCE(ended_at, created_at) DESC LIMIT 1`, [workspaceId, accountId]
   );
   return result.rows[0] ? readResearchEvidence(workspaceId, accountId, result.rows[0].id) : null;
+};
+
+export const readLatestTargetIntelligence = async (workspaceId: string, accountId: string) => {
+  const result = await postgres.query<{ id: string }>(
+    `SELECT id FROM analysis_runs WHERE workspace_id = $1 AND account_id = $2 AND status = 'completed'
+     ORDER BY ended_at DESC, id DESC LIMIT 1`, [workspaceId, accountId]
+  );
+  if (!result.rows[0]) return { run: null, technologies: [], people: [], signals: [], gaps: [] };
+  const run = await readAccountResearch(workspaceId, accountId, result.rows[0].id);
+  const values = [workspaceId, accountId, result.rows[0].id];
+  const [technologies, people, signals, gaps] = await Promise.all([
+    postgres.query(`SELECT id,claim_id,name,category,status,rationale,observed_at,created_at FROM target_technologies WHERE workspace_id=$1 AND account_id=$2 AND run_id=$3 ORDER BY category,name`, values),
+    postgres.query(`SELECT id,claim_id,name,role,buying_role,currentness,rationale,created_at FROM target_people WHERE workspace_id=$1 AND account_id=$2 AND run_id=$3 ORDER BY name,role`, values),
+    postgres.query(`SELECT id,claim_id,signal_type,strength,event_date,interpretation,created_at FROM buying_signals WHERE workspace_id=$1 AND account_id=$2 AND run_id=$3 ORDER BY event_date DESC NULLS LAST, created_at DESC`, values),
+    postgres.query(`SELECT id,claim_id,statement,certainty,rationale,created_at FROM target_gap_hypotheses WHERE workspace_id=$1 AND account_id=$2 AND run_id=$3 ORDER BY created_at`, values)
+  ]);
+  return { run, technologies: mapDbRows(technologies.rows), people: mapDbRows(people.rows), signals: mapDbRows(signals.rows), gaps: mapDbRows(gaps.rows) };
 };
 
 export const readResearchSourceContent = async (workspaceId: string, accountId: string, runId: string, sourceId: string) => {

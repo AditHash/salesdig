@@ -1,7 +1,7 @@
 import type { Response } from "express";
 import type { AuthRequest } from "../middlewares/isAuth.js";
 import {
-  queueAccountResearch, readAccountResearch, readLatestResearchEvidence, readResearchEvidence,
+  queueAccountResearch, readAccountResearch, readLatestResearchEvidence, readLatestTargetIntelligence, readResearchEvidence,
   readResearchSourceContent, retryAccountResearch
 } from "../services/research/researchJobs.service.js";
 import {
@@ -113,6 +113,15 @@ export const readLatestTargetEvidence = async (req: AuthRequest, res: Response) 
     const evidence = await readLatestResearchEvidence(actor.workspaceId, account.id);
     return evidence ? res.json(evidence) : res.json({ run: null, sources: [], claims: [] });
   } catch (error) { return failure(res, error, "read evidence for"); }
+};
+
+export const readTargetIntelligence = async (req: AuthRequest, res: Response) => {
+  const actor = scope(req, res); if (!actor) return;
+  try {
+    const account = await getTargetAccount(actor.workspaceId, String(req.params.id));
+    if (!account) return res.status(404).json({ message: "Target account not found" });
+    return res.json(await readLatestTargetIntelligence(actor.workspaceId, account.id));
+  } catch (error) { return failure(res, error, "read intelligence for"); }
 };
 
 export const readTargetSource = async (req: AuthRequest, res: Response) => {

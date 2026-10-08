@@ -15,6 +15,7 @@ const { postgres, initializePostgres } = await import("../src/config/postgres.js
 const { DEFAULT_WORKSPACE_SETTINGS } = await import("../src/config/workspaceDefaults.js");
 const { processNextAccountResearch } = await import("../src/services/research/researchJobs.service.js");
 const { validateResearchClaims } = await import("../src/services/research/evidenceExtraction.service.js");
+const { validateTargetIntelligence } = await import("../src/services/research/intelligenceExtraction.service.js");
 const { isPublicAddress, parsePublicUrl, extractPageText } = await import("../src/services/research/publicSourceFetch.service.js");
 const { default: app } = await import("../src/app.js");
 const workspaces = [randomUUID(), randomUUID()];
@@ -41,6 +42,10 @@ const validClaims = (sources: any[]) => validateResearchClaims({ claims: [{
   classification: "fact", certainty: "confirmed", eventDate: null,
   evidence: [{ sourceId: sources[0].id, excerpt: "Acme Research builds cloud applications for retail companies" }]
 }] }, sources);
+const intelligenceFor = (claims: any[]) => ({ intelligence: {
+  technologies: claims.length ? [{ claimId: claims[0].id, name: "AWS", category: "cloud", status: "confirmed", rationale: "The source directly describes cloud applications.", observedAt: null }] : [],
+  people: [], signals: [], gaps: []
+}, usage });
 
 before(async () => {
   await initializePostgres();
@@ -87,7 +92,8 @@ test("queued account research stores evidence and preserves workspace boundaries
   assert.equal(await processNextAccountResearch({
     discover: async () => ({ urls: [], usage }),
     fetch: async (url, domain) => { fetched++; return sourceFor(url, domain); },
-    extract: async (_name, _domain, sources) => ({ claims: validClaims(sources), usage })
+    extract: async (_name, _domain, sources) => ({ claims: validClaims(sources), usage }),
+    analyze: async (_name, claims) => intelligenceFor(claims)
   }), true);
   assert.equal(fetched, 1);
   const run = await request(`/targets/${id}/research/${runId}`, users[0]);
@@ -104,6 +110,10 @@ test("queued account research stores evidence and preserves workspace boundaries
   assert.equal((await request(`/targets/${id}/research/${runId}/evidence`, users[1])).status, 404);
   assert.equal((await request(`/targets/${id}/research/${runId}/sources/${sourceId}`, users[1])).status, 404);
   assert.equal((await request(`/targets/${id}/research/${runId}/sources/${sourceId}`, users[0])).data.content.includes("Acme Research"), true);
+  const intelligence = await request(`/targets/${id}/intelligence`, users[0]);
+  assert.equal(intelligence.status, 200);
+  assert.equal(intelligence.data.technologies[0].status, "confirmed");
+  assert.equal((await request(`/targets/${id}/intelligence`, users[1])).status, 404);
   assert.equal((await request(`/analysis/v2/report/${run.data.reportId}`, users[0])).status, 200);
   const pdf = await fetch(`${base}/analysis/v2/report/${run.data.reportId}/pdf`, {
     headers: { Authorization: `Bearer ${token(users[0])}` }
@@ -128,7 +138,8 @@ test("invalid evidence leaves labelled partial sources; retry reuses sources and
     extract: async (_name, _domain, sources) => ({ claims: validateResearchClaims({ claims: [{
       statement: "Unsupported statement", classification: "fact", certainty: "confirmed", eventDate: null,
       evidence: [{ sourceId: sources[0].id, excerpt: "Not present in source" }]
-    }] }, sources), usage })
+    }] }, sources), usage }),
+    analyze: async (_name, claims) => intelligenceFor(claims)
   });
   const failed = await request(`/targets/${id}/research/${runId}`, users[0]);
   assert.equal(failed.data.status, "failed");
@@ -142,7 +153,8 @@ test("invalid evidence leaves labelled partial sources; retry reuses sources and
   await processNextAccountResearch({
     discover: async () => { discoveryCalls++; throw new Error("Should reuse stored sources"); },
     fetch: async () => { throw new Error("Should reuse stored sources"); },
-    extract: async (_name, _domain, sources) => ({ claims: validClaims(sources), usage })
+    extract: async (_name, _domain, sources) => ({ claims: validClaims(sources), usage }),
+    analyze: async (_name, claims) => intelligenceFor(claims)
   });
   assert.equal(discoveryCalls, 0);
   const completed = await request(`/targets/${id}/research/${runId}`, users[0]);
@@ -165,4 +177,11 @@ test("claim validation rejects foreign source IDs, absent excerpts, and invented
     statement: "Unsupported fact", classification: "fact", certainty: "confirmed", eventDate: "2026-02-31",
     evidence: [{ sourceId: source.id, excerpt: "Acme Research builds cloud applications" }]
   }] }, [source]));
+});
+
+test("intelligence keeps job evidence likely and rejects gaps based only on missing information", () => {
+  const claim = { id: randomUUID(), statement: "The company has a job posting for an AWS engineer.", classification: "fact" as const, certainty: "confirmed" as const, eventDate: null };
+  const result = validateTargetIntelligence({ technologies: [{ claimId: claim.id, name: "AWS", category: "cloud", status: "confirmed", rationale: "Job posting requests AWS experience.", observedAt: null }], people: [], signals: [], gaps: [] }, [claim]);
+  assert.equal(result.technologies[0].status, "likely");
+  assert.throws(() => validateTargetIntelligence({ technologies: [], people: [], signals: [], gaps: [{ claimId: claim.id, statement: "No evidence of monitoring means a gap.", certainty: "likely", rationale: "No public evidence." }] }, [claim]));
 });

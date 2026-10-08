@@ -67,6 +67,14 @@ export interface ResearchEvidence {
   claims: ResearchClaim[];
 }
 
+export interface TargetIntelligence {
+  run: TargetRun | null;
+  technologies: Array<{ id: string; claimId: string; name: string; category: string; status: 'confirmed' | 'likely' | 'unknown'; rationale: string; observedAt: string | null }>;
+  people: Array<{ id: string; claimId: string; name: string; role: string; buyingRole: string; currentness: 'confirmed' | 'likely' | 'unknown'; rationale: string }>;
+  signals: Array<{ id: string; claimId: string; signalType: string; strength: 'low' | 'medium' | 'high'; eventDate: string | null; interpretation: string }>;
+  gaps: Array<{ id: string; claimId: string; statement: string; certainty: 'likely' | 'unknown'; rationale: string }>;
+}
+
 export const listTargets = (page = 1, search = '', includeArchived = false) =>
   API.get<{ data: TargetAccount[]; total: number; page: number; limit: number }>('/targets', {
     params: { page, search, includeArchived }
@@ -82,6 +90,7 @@ export const getTargetHistory = (id: string) => API.get<{ reports: TargetReport[
 export const researchTarget = (id: string) => API.post<{ runId: string; status: 'queued'; stage: 'queued' }>(`/targets/${id}/research`);
 export const getTargetResearchRun = (id: string, runId: string) => API.get<TargetRun>(`/targets/${id}/research/${runId}`);
 export const getLatestTargetEvidence = (id: string) => API.get<ResearchEvidence>(`/targets/${id}/research/latest/evidence`);
+export const getTargetIntelligence = (id: string) => API.get<TargetIntelligence>(`/targets/${id}/intelligence`);
 export const getTargetEvidence = (id: string, runId: string) => API.get<ResearchEvidence>(`/targets/${id}/research/${runId}/evidence`);
 export const retryTargetResearch = (id: string, runId: string) => API.post(`/targets/${id}/research/${runId}/retry`);
 export const linkTargetReport = (id: string, reportId: string) => API.post(`/targets/${id}/link-report`, { reportId });

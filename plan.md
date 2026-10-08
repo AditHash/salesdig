@@ -1,6 +1,6 @@
 # Salesdig V2 implementation plan
 
-Status: Step 0 and Steps 1–2 implemented locally; Steps 3–6 remain planned.
+Status: Step 0 and Steps 1–4 implemented locally; Steps 5–6 remain planned.
 
 ## Goal and working agreement
 
@@ -166,24 +166,24 @@ Build each section as a view/projection over persisted evidence. Introduce addit
 
 ### 4.1 Company overview and Tech DNA
 
-- [ ] Organize sourced company profile fields and recent developments.
-- [ ] Normalize technologies into cloud/data/backend/infrastructure/AI/monitoring/CRM categories.
-- [ ] Use confirmed/likely/unknown status with source dates and rationale.
-- [ ] Keep “job requests AWS experience” distinct from “company operates production AWS workloads.”
+- [x] Organize sourced company profile fields and recent developments.
+- [x] Normalize technologies into cloud/data/backend/infrastructure/AI/monitoring/CRM categories.
+- [x] Use confirmed/likely/unknown status with source dates and rationale.
+- [x] Keep “job requests AWS experience” distinct from “company operates production AWS workloads.”
 
 ### 4.2 Stakeholders and buying signals
 
-- [ ] Store sourced professional names/roles and currentness; leave unavailable contact details unknown.
-- [ ] Map potential economic buyer, technical buyer, champion, influencer, procurement, and sponsor roles with uncertainty visible.
-- [ ] Normalize signal type, event date, strength rubric, evidence, and interpretation.
-- [ ] Deduplicate one event mentioned by multiple sources.
-- [ ] Avoid claiming a hiring trend without comparable observations across time.
+- [x] Store sourced professional names/roles and currentness; leave unavailable contact details unknown.
+- [x] Map potential economic buyer, technical buyer, champion, influencer, procurement, and sponsor roles with uncertainty visible.
+- [x] Normalize signal type, event date, strength rubric, evidence, and interpretation.
+- [x] Deduplicate one event mentioned by multiple sources.
+- [x] Avoid claiming a hiring trend without comparable observations across time.
 
 ### 4.3 Potential gaps and account page
 
-- [ ] Derive gap hypotheses from affirmative evidence; missing public information alone is not a gap.
-- [ ] Show an initial account page with Overview, Tech DNA, Stakeholders, Buying Signals, Potential Gaps, and Sources.
-- [ ] Display empty, partial, and stale states instead of inventing findings for every section.
+- [x] Derive gap hypotheses from affirmative evidence; missing public information alone is not a gap.
+- [x] Show an initial account page with Overview, Tech DNA, Stakeholders, Buying Signals, Potential Gaps, and Sources.
+- [x] Display empty, partial, and stale states instead of inventing findings for every section.
 
 **Acceptance criteria:** every material finding is traceable; professional roles can be verified from sources; inference badges and uncertainty are consistent. Repeated signals are not double-counted. Sparse research renders honestly.
 
